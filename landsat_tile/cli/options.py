@@ -7,6 +7,10 @@ import click
 def callback_lnglat(ctx, param, value):
     """ Convert coordinates with N/S/W/E coordinates into numbers
     """
+    if not value:
+        return None
+
+    # Input should look like 70W, 10N, 10S, 70E, etc.
     mag_dir = re.findall('\d+|\D+', value)
     # Cardinal direction and coordinate should fall into [0] or [1]
     if len(mag_dir) < 2:
@@ -33,19 +37,47 @@ def callback_lnglat(ctx, param, value):
 
 
 # ARGUMENTS
-arg_source = click.argument('source', metavar='INPUT',
-                            type=click.Path(readable=True, resolve_path=True,
-                                            dir_okay=False))
+arg_source = click.argument(
+    'source',
+    metavar='INPUT',
+    type=click.Path(readable=True, resolve_path=True, dir_okay=False))
 
-arg_destination = click.argument('destination', metavar='OUTPUT',
-                                 type=click.Path(writable=True,
-                                                 resolve_path=True))
+arg_sources = click.argument(
+    'sources',
+    nargs=-1,
+    metavar='INPUTS...',
+    type=click.Path(readable=True, resolve_path=True, dir_okay=False))
+
+arg_destination = click.argument(
+    'destination',
+    metavar='OUTPUT',
+    type=click.Path(writable=True, resolve_path=True))
 
 # OPTIONS
-opt_longitude = click.argument('lon', callback=callback_lnglat)
+opt_longitude = click.option(
+    '--lon',
+    metavar='#[W|E]',
+    default=None,
+    multiple=True,
+    show_default=True,
+    callback=callback_lnglat,
+    help='Override upper left longitude of tile')
 
-opt_latitude = click.argument('lat', callback=callback_lnglat)
+opt_latitude = click.option(
+    '--lat',
+    metavar='#[N|S]',
+    default=None,
+    multiple=True,
+    callback=callback_lnglat,
+    help='Override upper left latitude of tile')
 
-opt_format = click.option('-of', '--format', 'driver',
-                          default='GTiff', show_default=True,
-                          help='Output format driver')
+opt_format = click.option(
+    '-of', '--format', 'driver',
+    default='GTiff',
+    show_default=True,
+    help='Output format driver')
+
+opt_overwrite = click.option(
+    '--overwrite',
+    is_flag=True,
+    help='Overwrite destination file')
