@@ -9,6 +9,7 @@ import rasterio.rio.options
 
 from . import options
 from .. import grids
+from .. import utils
 
 logger = logging.getLogger('landsat_tile')
 
@@ -105,7 +106,7 @@ def tile(ctx, sources, destination,
 
     # Co-register reprojected tile bounds to grid
     xmin, ymin, xmax, ymax = rasterio.coords.BoundingBox(
-        *grids.match_to_grid(tile_bounds, grid['bounds'], grid['res'] * 2))
+        *utils.match_to_grid(tile_bounds, grid['bounds'], grid['res'] * 2))
     logger.debug('Tile coordinates: {bbox}'.format(
         bbox=rasterio.coords.BoundingBox(xmin, ymin, xmax, ymax)))
 
@@ -135,7 +136,7 @@ def tile(ctx, sources, destination,
             # Ensure source data in tile
             src_bounds = rasterio.warp.transform_bounds(
                 src.crs, out_kwargs['crs'], *src.bounds)
-            if not grids.intersects_bounds(grid['bounds'], src_bounds):
+            if not utils.intersects_bounds(grid['bounds'], src_bounds):
                 raise click.ClickException(
                     'Input image (center lon/lat: {0}) does not '
                     'intersect tile with lon/lat bounds '
