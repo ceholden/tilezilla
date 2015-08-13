@@ -7,7 +7,6 @@ import click
 import numpy as np
 import rasterio
 import rasterio.crs
-import rasterio.rio.options
 import rasterio.warp
 
 from . import options
@@ -35,7 +34,7 @@ logger = logging.getLogger('landsat_tile')
 @options.opt_longitude
 @options.opt_latitude
 @options.opt_format
-@rasterio.rio.options.creation_options
+@options.opt_creation_options
 @click.option('--resampling',
               type=click.Choice(['nearest', 'bilinear', 'cubic','cubic_spline',
                                  'lanczos', 'average', 'mode']),

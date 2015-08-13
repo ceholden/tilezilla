@@ -4,6 +4,24 @@ import click
 
 
 # CALLBACKS
+def callback_dict(ctx, param, value):
+    """ Call back for dict style arguments (e.g., KEY=VALUE)
+    """
+    if not value:
+        return {}
+    else:
+        d = {}
+        for val in value:
+            if '=' not in val:
+                raise click.BadParameter(
+                    'Must specify {p} as KEY=VALUE ({v} given)'.format(
+                        p=param, v=value))
+            else:
+                k, v = val.split('=', 1)
+                d[k] = v
+        return d
+
+
 def callback_lnglat(ctx, param, value):
     """ Convert coordinates with N/S/W/E coordinates into numbers
     """
@@ -42,6 +60,7 @@ def callback_lnglat(ctx, param, value):
 
     return tuple(coords)
 
+
 # ARGUMENTS
 arg_source = click.argument(
     'source',
@@ -61,6 +80,16 @@ arg_tile_dir = click.argument(
     type=click.Path(writable=True, file_okay=False, resolve_path=True))
 
 # OPTIONS
+opt_creation_options = click.option(
+    '--co', 
+    'creation_options',
+    metavar='OPTION=VALUE',
+    multiple=True,
+    default=None,
+    show_default=True,
+    callback=callback_dict,
+    help='Driver creation options')
+
 opt_longitude = click.option(
     '--lon',
     metavar='#[W|E]',
