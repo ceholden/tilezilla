@@ -10,31 +10,37 @@ def callback_lnglat(ctx, param, value):
     if not value:
         return None
 
-    # Input should look like 70W, 10N, 10S, 70E, etc.
-    mag_dir = re.findall('\d+|\D+', value)
-    # Cardinal direction and coordinate should fall into [0] or [1]
-    if len(mag_dir) < 2:
-        raise click.BadParameter(
-                'Could not parse input lon/lat coordinate',
-                param=param.name, param_hint=value)
-    try:
-        magnitude = float(mag_dir[0])
-    except:
-        try:
-            magnitude = float(mag_dir[1])
-        except ValueError:
+    def _process_coord(param, value):
+        # Input should look like 70W, 10N, 10S, 70E, etc.
+        mag_dir = re.findall('\d+|\D+', value)
+        # Cardinal direction and coordinate should fall into [0] or [1]
+        if len(mag_dir) < 2:
             raise click.BadParameter(
-                'Could not parse input lon/lat coordinate',
-                param=param.name, param_hint=value)
+                    'Could not parse input lon/lat coordinate',
+                    param=param.name, param_hint=value)
+        try:
+            magnitude = float(mag_dir[0])
+        except:
+            try:
+                magnitude = float(mag_dir[1])
+            except ValueError:
+                raise click.BadParameter(
+                    'Could not parse input lon/lat coordinate',
+                    param=param.name, param_hint=value)
+            else:
+                direction = mag_dir[0].strip()
         else:
-            direction = mag_dir[0].strip()
-    else:
-        direction = mag_dir[1].strip()
-    finally:
-        direction = 1 if direction.upper() in ('N', 'E') else -1
+            direction = mag_dir[1].strip()
+        finally:
+            direction = 1 if direction.upper() in ('N', 'E') else -1
 
-    return magnitude * direction
+        return magnitude * direction
 
+    coords = []
+    for coord in value:
+        coords.append(_process_coord(param, coord))
+
+    return tuple(coords)
 
 # ARGUMENTS
 arg_source = click.argument(
