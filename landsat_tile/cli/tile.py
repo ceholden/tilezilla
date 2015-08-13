@@ -75,9 +75,9 @@ def tile(ctx, source, tile_dir, ext,
 
     \b
     TODO:
-        1. Create / check output tile directories (see above docstring for
-           details)
+        1. Spifier, less ugly CLI statements (see https://developmentseed.org/blog/2015/03/10/releasing-landsat-v05/)
         2. Copy metadata (see docstring for details)
+        3. Benchmark if faster to reproject each band individually, or read all bands in and then reproject
 
     """
     resampling = getattr(rasterio.warp.RESAMPLING, resampling)
