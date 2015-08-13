@@ -1,11 +1,14 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-i
+import errno
 import logging
-from math import ceil
+import os
 
 import click
 import numpy as np
 import rasterio
+import rasterio.crs
 import rasterio.rio.options
+import rasterio.warp
 
 from . import options
 from .. import grids
@@ -17,7 +20,7 @@ logger = logging.getLogger('landsat_tile')
 @click.command(short_help=u'Subset to 1x1° tile, reproject, and align '
                           'to grid one or more images')
 @options.arg_source
-@options.arg_destination
+@options.arg_tile_dir
 @click.option('--grid', default=None, type=click.Choice(grids.grids.keys()),
               help='Use bounds and CRS of a known product')
 @click.option('--grid-bounds', nargs=4, type=float, default=None,
@@ -34,26 +37,46 @@ logger = logging.getLogger('landsat_tile')
 @options.opt_format
 @rasterio.rio.options.creation_options
 @click.option('--resampling',
-              type=click.Choice(['nearest', 'bilinear', 'cubic',
-                                 'cubic_spline','lanczos', 'average', 'mode']),
+              type=click.Choice(['nearest', 'bilinear', 'cubic','cubic_spline',
+                                 'lanczos', 'average', 'mode']),
               default='nearest', show_default=True, help='Resampling method')
 @click.option('--threads', type=int, default=1, show_default=True,
               help='Number of processing threads')
+@click.option('--no-metadata', 'no_md', is_flag=True,
+              help='Do not populate tile images with metadata')
 @options.opt_overwrite
 @click.pass_context
-def tile(ctx, sources, destination,
-         grid, grid_bounds, grid_crs, grid_res, dilate, lon, lat,
-         driver, creation_options, resampling, threads, overwrite):
+def tile(ctx, source, tile_dir,
+         grid, grid_bounds, grid_crs, grid_res, mask, dilate, lon, lat,
+         driver, creation_options, resampling, threads, overwrite, no_md):
     u""" Subset to 1x1° tile, reproject, and align to grid one or more images
 
-    Input images, if multiple are specified, must be the same pixel resolution,
-    shape, and coordinate extent.
+    If --lon and --lat are not specified, the INPUT image will be split into
+    all intersecting tiles. Tiles created will be saved under TILE_DIR in
+    directories labeled according to the tile location. Directories for a given
+    tile will contain tiled images within subdirectories labeled according to
+    Landsat ID.
+
+    \b
+    Example:
+        tiledir/
+            41N_072W/
+                LT50120312000183AAA02/
+                    LT50120312000183AAA02_sr_band1.tif
+            41N_073W/
+                LT50120312000183AAA02/
+                    LT50120312000183AAA02_sr_band1.tif
+
+    Effort is made to copy metadata by setting the metadata on the destination
+    image. Metadata come from the source data or source metadata (e.g., MTL
+    files) next to input source images. Users can turn off this by specifying
+    --no-metadata.
 
     \b
     TODO:
-        1. Change docstring/title/etc
-        2. Ability to loop over lon/lat
-        3. If no lon/lat specified, find all that intersect
+        1. Create / check output tile directories (see above docstring for
+           details)
+        2. Copy metadata (see docstring for details)
 
     """
     resampling = getattr(rasterio.warp.RESAMPLING, resampling)
@@ -78,79 +101,81 @@ def tile(ctx, sources, destination,
         raise click.BadParameter('invalid CRS format',
                                  param=grid_crs, param_hint=grid['crs'])
 
-    with rasterio.open(sources[0], 'r') as first:
-        meta = first.meta.copy()
-
-        if not lon or not lat:
-            logger.debug('Tile lon/lat not provided -- calculating tiles')
-            # Find tiles containing sources
-
-        else:
-            from IPython.core.debugger import Pdb
-            Pdb().set_trace()
-            logger.debug('Tiling to ')
-
-
-    # Formulate tile bounds
-    tile_bounds_lonlat = rasterio.coords.BoundingBox(left=lon, bottom=lat - 1,
-                                                     right=lon + 1, top=lat)
-
-    # Reproject tile bounds to grid CRS
-    # NOTE: transform_bounds doesn't seem to work... do it manually
-    xs, ys = rasterio.warp.transform(
-        {'init': 'epsg:4326'}, grid['crs'],
-        [lon, lon, lon + 1, lon + 1],
-        [lat, lat - 1, lat, lat - 1])
-    tile_bounds = rasterio.coords.BoundingBox(
-        left=min(xs), bottom=min(ys), right=max(xs), top=max(ys))
-
-    # Co-register reprojected tile bounds to grid
-    xmin, ymin, xmax, ymax = rasterio.coords.BoundingBox(
-        *utils.match_to_grid(tile_bounds, grid['bounds'], grid['res'] * 2))
-    logger.debug('Tile coordinates: {bbox}'.format(
-        bbox=rasterio.coords.BoundingBox(xmin, ymin, xmax, ymax)))
-
-    grid['bounds'] = rasterio.coords.BoundingBox(xmin, ymin, xmax, ymax)
-    logger.debug('Tile coordinates after dilate: {}'.format(grid['bounds']))
-
-    # Create affine transform and height/width
-    grid['transform'] = rasterio.Affine(grid['res'][0], 0, xmin,
-                                        0, -grid['res'][1], ymax)
-    grid['width'] = max(int(ceil((xmax - xmin) / grid['res'][0])), 1)
-    grid['height'] = max(int(ceil((ymax - ymin) / grid['res'][1])), 1)
-
     with rasterio.drivers():
         with rasterio.open(source) as src:
-            # Configure output metadata
-            out_kwargs = src.meta.copy()
-            out_kwargs.update({
-                'driver': driver,
-                'crs': grid['crs'],
-                'affine': grid['transform'],
-                'transform': grid['transform'],
-                'width': grid['width'],
-                'height': grid['height']
-            })
-            out_kwargs.update(**creation_options)
+            # Find tiles containing sources
+            tile_coords = utils.calc_tile_intersection(src.bounds, src.crs)
+            if not lon or not lat:
+                logger.debug(
+                    'Tile lon/lat not given -- using intersecting tiles')
+            else:
+                _user_coords = [(_lon, _lat) for _lon, _lat in zip(lon, lat)]
 
-            # Ensure source data in tile
-            src_bounds = rasterio.warp.transform_bounds(
-                src.crs, out_kwargs['crs'], *src.bounds)
-            if not utils.intersects_bounds(grid['bounds'], src_bounds):
-                raise click.ClickException(
-                    'Input image (center lon/lat: {0}) does not '
-                    'intersect tile with lon/lat bounds '
-                    '{1}'.format(src.lnglat(), tile_bounds_lonlat))
+                # Check provided tiles can exist
+                _tile_coords = []
+                for _tc in _user_coords:
+                    if _tc in tile_coords:
+                        _tile_coords.append(_tc)
+                    else:
+                        logger.warning(
+                            'Tile UL {} does not overlap'.format(_tc))
+                tile_coords = tuple(_tile_coords)
 
-            with rasterio.open(destination, 'w', **out_kwargs) as dst:
-                for i in range(1, src.count + 1):
-                    rasterio.warp.reproject(
-                        source=rasterio.band(src, i),
-                        destination=rasterio.band(dst, i),
-                        src_transform=src.affine,
-                        src_crs=src.crs,
-                        dst_transform=out_kwargs['transform'],
-                        dst_crs=out_kwargs['crs'],
-                        resampling=resampling,
-                        num_threads=threads)
+            logger.debug('Tiling to {}'.format(tile_coords))
 
+            # Create all tiles for each source
+            for lon, lat in tile_coords:
+                destination = utils.get_tile_output_name(source, tile_dir,
+                                                         lon, lat, decimals=0)
+
+                if os.path.exists(destination) and not overwrite:
+                    logger.info('Already processed tile and not --overwrite. '
+                                'Skipping {f}'.format(f=destination))
+                    continue
+
+                try:
+                    os.makedirs(os.path.dirname(destination))
+                except OSError as exception:
+                    if exception.errno != errno.EEXIST:
+                        raise
+
+                logger.debug('Tiling {lon} {lat} to {f}'.format(
+                    lon=lon, lat=lat, f=destination))
+
+                # Get bounds/transform/size of tile in grid crs
+                params = utils.tile_grid_parameters(lon, lat, grid)
+
+                # Configure output metadata
+                out_kwargs = src.meta.copy()
+                out_kwargs.update({
+                    'driver': driver,
+                    'crs': grid['crs'],
+                    'affine': params['transform'],
+                    'transform': params['transform'],
+                    'width': params['width'],
+                    'height': params['height']
+                })
+                out_kwargs.update(**creation_options)
+
+                # Ensure source data in tile
+                src_bounds = rasterio.warp.transform_bounds(
+                    src.crs, out_kwargs['crs'], *src.bounds)
+                if not utils.intersects_bounds(params['bounds'],
+                                               src_bounds):
+                    raise click.ClickException(
+                        'Input image (center lon/lat: {0}) does not '
+                        'intersect tile with lon/lat bounds '
+                        '{1}'.format(src.lnglat(), params['bounds_lonlat'])
+                    )
+
+                with rasterio.open(destination, 'w', **out_kwargs) as dst:
+                    for i in range(1, src.count + 1):
+                        rasterio.warp.reproject(
+                            source=rasterio.band(src, i),
+                            destination=rasterio.band(dst, i),
+                            src_transform=src.affine,
+                            src_crs=src.crs,
+                            dst_transform=out_kwargs['transform'],
+                            dst_crs=out_kwargs['crs'],
+                            resampling=resampling,
+                            num_threads=threads)

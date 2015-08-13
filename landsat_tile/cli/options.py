@@ -54,10 +54,11 @@ arg_sources = click.argument(
     metavar='INPUTS...',
     type=click.Path(readable=True, resolve_path=True, dir_okay=False))
 
-arg_destination = click.argument(
-    'destination',
-    metavar='OUTPUT',
-    type=click.Path(writable=True, resolve_path=True))
+arg_tile_dir = click.argument(
+    'tile_dir',
+    nargs=1,
+    metavar='TILE_DIR',
+    type=click.Path(writable=True, file_okay=False, resolve_path=True))
 
 # OPTIONS
 opt_longitude = click.option(
