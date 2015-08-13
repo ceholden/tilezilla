@@ -20,6 +20,8 @@ logger = logging.getLogger('landsat_tile')
                           'to grid one or more images')
 @options.arg_source
 @options.arg_tile_dir
+@click.option('--ext', show_default=True, default=None,
+              help='Tile filename extension')
 @click.option('--grid', default=None, type=click.Choice(grids.grids.keys()),
               help='Use bounds and CRS of a known product')
 @click.option('--grid-bounds', nargs=4, type=float, default=None,
@@ -45,7 +47,7 @@ logger = logging.getLogger('landsat_tile')
               help='Do not populate tile images with metadata')
 @options.opt_overwrite
 @click.pass_context
-def tile(ctx, source, tile_dir,
+def tile(ctx, source, tile_dir, ext,
          grid, grid_bounds, grid_crs, grid_res, mask, dilate, lon, lat,
          driver, creation_options, resampling, threads, overwrite, no_md):
     u""" Subset to 1x1° tile, reproject, and align to grid one or more images
@@ -125,7 +127,9 @@ def tile(ctx, source, tile_dir,
             # Create all tiles for each source
             for lon, lat in tile_coords:
                 destination = utils.get_tile_output_name(source, tile_dir,
-                                                         lon, lat, decimals=0)
+                                                         lon, lat, 
+                                                         ext=ext, 
+                                                         decimals=0)
 
                 if os.path.exists(destination) and not overwrite:
                     logger.info('Already processed tile and not --overwrite. '

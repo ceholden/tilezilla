@@ -108,18 +108,19 @@ def tile_grid_parameters(lon, lat, grid):
     return out
 
 
-def get_tile_output_name(source, tile_dir, lon, lat, decimals=0):
+def get_tile_output_name(source, tile_dir, lon, lat, ext=None, decimals=0):
     """ Return destination filename for a tile
 
     Filename will be:
         ${tile_dir}/$(format $lat)_$(format lon)/\
-            $(basename $(dirname $source))/$(basename $source)
+            $(basename $(dirname $source))/$(basename $source).${ext}
 
     Args:
       source (str): path to source filename
       tile_dir (str): path to tile root directory
       lon (float): longitude of upper left of tile
       lat (float): latitude of upper left of tile
+      ext (str): file format extension (default: None)
       decimals (int): number of decimal places to retain in float->str
         conversion of `lon` and `lat`
 
@@ -145,6 +146,10 @@ def get_tile_output_name(source, tile_dir, lon, lat, decimals=0):
 
     # Filename -- basename of source
     name = os.path.basename(source)
+    if ext:
+        if ext[0] == '.':
+            ext = ext[1:]
+        name = '{n}.{e}'.format(n=name, e=ext)
 
     return os.path.abspath(os.path.join(tile_dir, lat_lon, landsat_id, name))
 
