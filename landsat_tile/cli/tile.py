@@ -102,7 +102,7 @@ def tile(ctx, source, tile_dir, ext,
     try:
         grid['crs'] = rasterio.crs.from_string(grid['crs'])
     except ValueError:
-        raise click.BadParameter('invalid CRS format',
+        raise click.BadParameter('Invalid CRS format',
                                  param=grid_crs, param_hint=grid['crs'])
 
     with rasterio.drivers():
@@ -191,14 +191,14 @@ def tile(ctx, source, tile_dir, ext,
                         invert=False)
 
                 with rasterio.open(destination, 'w', **out_kwargs) as dst:
-                    destination = np.empty(
+                    dest_img = np.empty(
                         (out_kwargs['height'], out_kwargs['width']),
                         dtype=src.dtypes[0])
 
                     for i in range(1, src.count + 1):
                         rasterio.warp.reproject(
                             source=rasterio.band(src, i),
-                            destination=destination,
+                            destination=dest_img,
                             src_transform=src.affine,
                             src_crs=src.crs,
                             dst_transform=out_kwargs['transform'],
@@ -207,6 +207,6 @@ def tile(ctx, source, tile_dir, ext,
                             num_threads=threads)
 
                         if mask:
-                            destination[geom_mask] = src.nodata or ndv
+                            dest_img[geom_mask] = src.nodata or ndv
 
-                        dst.write_band(i, destination)
+                        dst.write_band(i, dest_img)
