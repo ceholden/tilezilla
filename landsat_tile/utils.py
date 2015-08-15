@@ -96,8 +96,6 @@ def tile_grid_parameters(lon, lat, grid):
     # Co-register reprojected tile bounds to grid
     xmin, ymin, xmax, ymax = rasterio.coords.BoundingBox(
         *match_to_grid(bounds_crs, grid['bounds'], grid['res'] * 2))
-    logger.debug('Tile coordinates: {bbox}'.format(
-        bbox=rasterio.coords.BoundingBox(xmin, ymin, xmax, ymax)))
 
     out = {}
     out['bounds_lonlat'] = bounds_lonlat

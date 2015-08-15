@@ -11,11 +11,13 @@ import rasterio.features
 import rasterio.warp
 import shapely
 
+from . import cliutils
 from . import options
 from .. import grids
 from .. import utils
 
 logger = logging.getLogger('landsat_tile')
+echoer = cliutils.Echoer(message_indent=0)
 
 
 @click.command(short_help=u'Subset to 1x1° tile, reproject, and align '
@@ -78,9 +80,8 @@ def tile(ctx, source, tile_dir, ext,
 
     \b
     TODO:
-        1. Spifier, less ugly CLI statements (see https://developmentseed.org/blog/2015/03/10/releasing-landsat-v05/)
-        2. Copy metadata (see docstring for details)
-        3. Benchmark if faster to reproject each band individually, or read all bands in and then reproject
+        1. Copy metadata (see docstring for details)
+        2. Benchmark if faster to reproject each band individually, or read all bands in and then reproject
 
     """
     resampling = getattr(rasterio.warp.RESAMPLING, resampling)
@@ -116,8 +117,7 @@ def tile(ctx, source, tile_dir, ext,
             # Find tiles containing sources
             tile_coords = utils.calc_tile_intersection(src.bounds, src.crs)
             if not lon or not lat:
-                logger.debug(
-                    'Tile lon/lat not given -- using intersecting tiles')
+                echoer.info('Calculating intersecting tiles')
             else:
                 _user_coords = [(_lon, _lat) for _lon, _lat in zip(lon, lat)]
 
@@ -127,13 +127,15 @@ def tile(ctx, source, tile_dir, ext,
                     if _tc in tile_coords:
                         _tile_coords.append(_tc)
                     else:
-                        logger.warning(
-                            'Tile UL {} does not overlap'.format(_tc))
+                        echoer.warning('Tile UL {} does not overlap'.
+                                       format(_tc))
                 tile_coords = tuple(_tile_coords)
 
-            logger.debug('Tiling to {}'.format(tile_coords))
+            echoer.info('Image intersects with {} tiles'.
+                        format(len(tile_coords)))
 
             # Create all tiles for each source
+            echoer.process('Creating image tiles')
             for lon, lat in tile_coords:
                 destination = utils.get_tile_output_name(source, tile_dir,
                                                          lon, lat,
@@ -141,18 +143,20 @@ def tile(ctx, source, tile_dir, ext,
                                                          decimals=0)
 
                 if os.path.exists(destination) and not overwrite:
-                    logger.info('Already processed tile and not --overwrite. '
-                                'Skipping {f}'.format(f=destination))
+                    echoer.item('Already processed tile and not --overwrite. '
+                                'Skipping {}'.format(f=(lon, lat)))
                     continue
 
                 try:
                     os.makedirs(os.path.dirname(destination))
                 except OSError as exception:
                     if exception.errno != errno.EEXIST:
+                        echoer.error('Error creating destination folder {d}'.
+                                     format(d=os.path.dirname(destination)))
                         raise
 
-                logger.debug('Tiling {lon} {lat} to {f}'.format(
-                    lon=lon, lat=lat, f=destination))
+                echoer.process('Tiling {} to {}'.format((lon, lat),
+                                                        destination))
 
                 # Get bounds/transform/size of tile in grid crs
                 params = utils.tile_grid_parameters(lon, lat, grid)
@@ -170,6 +174,7 @@ def tile(ctx, source, tile_dir, ext,
                 out_kwargs.update(**creation_options)
 
                 if mask:
+                    echoer.item('Masking to exactly tile extent')
                     # Get lat/lon bounding box and reproject to grid CRS
                     mask_geom = rasterio.warp.transform_geom(
                         {'init': 'epsg:4326'},
@@ -179,6 +184,9 @@ def tile(ctx, source, tile_dir, ext,
                     # Dilate
                     if dilate:
                         buffer_size = dilate * grid['res'][0]
+                        echoer.item('Dilating mask of tile extent by {}{}'.
+                                    format(buffer_size,
+                                           '' or grid['crs']['units']))
                         mask_poly = shapely.geometry.shape(mask_geom)
                         mask_dilate = mask_poly.buffer(buffer_size, 1)
                         mask_geom = shapely.geometry.mapping(mask_dilate)
@@ -196,6 +204,7 @@ def tile(ctx, source, tile_dir, ext,
                         dtype=src.dtypes[0])
 
                     for i in range(1, src.count + 1):
+                        echoer.item('Reprojecting band {}'.format(i))
                         rasterio.warp.reproject(
                             source=rasterio.band(src, i),
                             destination=dest_img,
