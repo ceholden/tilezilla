@@ -1,3 +1,4 @@
+affine>=1.2.0
 click>=4.0
 click_plugins>=1.0
 numpy>=1.9.2

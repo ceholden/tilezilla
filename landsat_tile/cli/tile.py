@@ -7,7 +7,9 @@ import click
 import numpy as np
 import rasterio
 import rasterio.crs
+import rasterio.features
 import rasterio.warp
+import shapely
 
 from . import options
 from .. import grids
@@ -20,8 +22,6 @@ logger = logging.getLogger('landsat_tile')
                           'to grid one or more images')
 @options.arg_source
 @options.arg_tile_dir
-@click.option('--ext', show_default=True, default=None,
-              help='Tile filename extension')
 @click.option('--grid', default=None, type=click.Choice(grids.grids.keys()),
               help='Use bounds and CRS of a known product')
 @click.option('--grid-bounds', nargs=4, type=float, default=None,
@@ -30,9 +30,12 @@ logger = logging.getLogger('landsat_tile')
               help='Grid coordinate reference system.')
 @click.option('--grid-res', default=None, nargs=2, type=float,
               help='Grid X/Y resolution')
+@click.option('--ext', show_default=True, default=None,
+              help='Tile filename extension')
 @click.option('--mask', is_flag=True, help=u'Mask output to exactly 1x1°')
-@click.option('--dilate', default=10, type=int, show_default=True,
-              help='Number of pixels used to dilate tile bounds')
+@options.opt_nodata
+@click.option('--dilate', default=0, type=int, show_default=True,
+              help='Number of pixels used to dilate tile bounds when masking')
 @options.opt_longitude
 @options.opt_latitude
 @options.opt_format
@@ -48,7 +51,7 @@ logger = logging.getLogger('landsat_tile')
 @options.opt_overwrite
 @click.pass_context
 def tile(ctx, source, tile_dir, ext,
-         grid, grid_bounds, grid_crs, grid_res, mask, dilate, lon, lat,
+         grid, grid_bounds, grid_crs, grid_res, mask, ndv, dilate, lon, lat,
          driver, creation_options, resampling, threads, overwrite, no_md):
     u""" Subset to 1x1° tile, reproject, and align to grid one or more images
 
@@ -104,6 +107,12 @@ def tile(ctx, source, tile_dir, ext,
 
     with rasterio.drivers():
         with rasterio.open(source) as src:
+            # If --mask, src needs to have a nodata value or user --ndv
+            if mask and (src.nodata is None and ndv is None):
+                raise click.BadParameter('Cannot mask tiles if INPUT does not '
+                                         'have nodata defined. Please override'
+                                         ' with --ndv')
+
             # Find tiles containing sources
             tile_coords = utils.calc_tile_intersection(src.bounds, src.crs)
             if not lon or not lat:
@@ -127,8 +136,8 @@ def tile(ctx, source, tile_dir, ext,
             # Create all tiles for each source
             for lon, lat in tile_coords:
                 destination = utils.get_tile_output_name(source, tile_dir,
-                                                         lon, lat, 
-                                                         ext=ext, 
+                                                         lon, lat,
+                                                         ext=ext,
                                                          decimals=0)
 
                 if os.path.exists(destination) and not overwrite:
@@ -160,25 +169,44 @@ def tile(ctx, source, tile_dir, ext,
                 })
                 out_kwargs.update(**creation_options)
 
-                # Ensure source data in tile
-                src_bounds = rasterio.warp.transform_bounds(
-                    src.crs, out_kwargs['crs'], *src.bounds)
-                if not utils.intersects_bounds(params['bounds'],
-                                               src_bounds):
-                    raise click.ClickException(
-                        'Input image (center lon/lat: {0}) does not '
-                        'intersect tile with lon/lat bounds '
-                        '{1}'.format(src.lnglat(), params['bounds_lonlat'])
-                    )
+                if mask:
+                    # Get lat/lon bounding box and reproject to grid CRS
+                    mask_geom = rasterio.warp.transform_geom(
+                        {'init': 'epsg:4326'},
+                        grid['crs'],
+                        utils.get_tile_geometry(lon, lat, 1)['geometry'])
+
+                    # Dilate
+                    if dilate:
+                        buffer_size = dilate * grid['res'][0]
+                        mask_poly = shapely.geometry.shape(mask_geom)
+                        mask_dilate = mask_poly.buffer(buffer_size, 1)
+                        mask_geom = shapely.geometry.mapping(mask_dilate)
+
+                    geom_mask = rasterio.features.geometry_mask(
+                        (mask_geom, ),
+                        (out_kwargs['height'], out_kwargs['width']),
+                        out_kwargs['transform'],
+                        all_touched=True,
+                        invert=False)
 
                 with rasterio.open(destination, 'w', **out_kwargs) as dst:
+                    destination = np.empty(
+                        (out_kwargs['height'], out_kwargs['width']),
+                        dtype=src.dtypes[0])
+
                     for i in range(1, src.count + 1):
                         rasterio.warp.reproject(
                             source=rasterio.band(src, i),
-                            destination=rasterio.band(dst, i),
+                            destination=destination,
                             src_transform=src.affine,
                             src_crs=src.crs,
                             dst_transform=out_kwargs['transform'],
                             dst_crs=out_kwargs['crs'],
                             resampling=resampling,
                             num_threads=threads)
+
+                        if mask:
+                            destination[geom_mask] = src.nodata or ndv
+
+                        dst.write_band(i, destination)

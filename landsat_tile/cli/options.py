@@ -81,7 +81,7 @@ arg_tile_dir = click.argument(
 
 # OPTIONS
 opt_creation_options = click.option(
-    '--co', 
+    '--co',
     'creation_options',
     metavar='OPTION=VALUE',
     multiple=True,
@@ -89,6 +89,12 @@ opt_creation_options = click.option(
     show_default=True,
     callback=callback_dict,
     help='Driver creation options')
+
+opt_format = click.option(
+    '-of', '--format', 'driver',
+    default='GTiff',
+    show_default=True,
+    help='Output format driver')
 
 opt_longitude = click.option(
     '--lon',
@@ -107,11 +113,12 @@ opt_latitude = click.option(
     callback=callback_lnglat,
     help='Override upper left latitude of tile')
 
-opt_format = click.option(
-    '-of', '--format', 'driver',
-    default='GTiff',
+opt_nodata = click.option(
+    '--ndv',
+    type=float,
+    default=None,
     show_default=True,
-    help='Output format driver')
+    help='Override source nodata value')
 
 opt_overwrite = click.option(
     '--overwrite',

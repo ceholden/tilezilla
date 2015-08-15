@@ -2,10 +2,12 @@
 """ Utilities
 """
 import itertools
+import json
 import logging
 from math import ceil
 import os
 
+import affine
 import numpy as np
 import rasterio.coords
 import rasterio.crs
@@ -100,8 +102,8 @@ def tile_grid_parameters(lon, lat, grid):
     out = {}
     out['bounds_lonlat'] = bounds_lonlat
     out['bounds'] = rasterio.coords.BoundingBox(xmin, ymin, xmax, ymax)
-    out['transform'] = rasterio.Affine(grid['res'][0], 0, xmin,
-                                       0, -grid['res'][1], ymax)
+    out['transform'] = affine.Affine(grid['res'][0], 0, xmin,
+                                     0, -grid['res'][1], ymax)
     out['width'] = max(int(ceil((xmax - xmin) / grid['res'][0])), 1)
     out['height'] = max(int(ceil((ymax - ymin) / grid['res'][1])), 1)
 
@@ -187,3 +189,39 @@ def bounds_to_polygon(bounds):
         (bounds[2], bounds[3]),
         (bounds[0], bounds[3])
     ])
+
+
+def get_tile_geometry(lon, lat, size=1):
+    """ Return a Shapely geometry for a given tile
+
+    Args:
+      lon (float): upper left longitude coordinate
+      lat (float): upper left latitude coordinate
+      size (float or tuple): one or more float values specifying the tile size.
+        If one value is specified, tile is assumed to be square.
+
+    Returns:
+      dict: tile geometry as GeoJSON dict
+
+    """
+    geojson = """
+    {
+        "geometry":
+        {
+            "coordinates": [[
+                [%s, %s],
+                [%s, %s],
+                [%s, %s],
+                [%s, %s],
+                [%s, %s]
+            ]],
+            "type": "Polygon"
+        }
+    }
+    """ % (lon, lat,                # upper left
+           lon + size, lat,         # upper right
+           lon + size, lat - size,  # lower right
+           lon, lat - size,         # lower left
+           lon, lat)                # upper left
+
+    return json.loads(geojson)
