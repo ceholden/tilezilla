@@ -81,7 +81,6 @@ def tile(ctx, source, tile_dir, ext,
     \b
     TODO:
         1. Copy metadata (see docstring for details)
-        2. Benchmark if faster to reproject each band individually, or read all bands in and then reproject
 
     """
     resampling = getattr(rasterio.warp.RESAMPLING, resampling)
@@ -144,7 +143,7 @@ def tile(ctx, source, tile_dir, ext,
 
                 if os.path.exists(destination) and not overwrite:
                     echoer.item('Already processed tile and not --overwrite. '
-                                'Skipping {}'.format(f=(lon, lat)))
+                                'Skipping {}'.format((lon, lat)))
                     continue
 
                 try:
@@ -199,23 +198,47 @@ def tile(ctx, source, tile_dir, ext,
                         invert=False)
 
                 with rasterio.open(destination, 'w', **out_kwargs) as dst:
+                    echoer.item('Reading in input image')
                     dest_img = np.empty(
-                        (out_kwargs['height'], out_kwargs['width']),
+                        (src.count, out_kwargs['height'], out_kwargs['width']),
                         dtype=src.dtypes[0])
+                    src_img = src.read(masked=True)
 
-                    for i in range(1, src.count + 1):
-                        echoer.item('Reprojecting band {}'.format(i))
-                        rasterio.warp.reproject(
-                            source=rasterio.band(src, i),
-                            destination=dest_img,
-                            src_transform=src.affine,
-                            src_crs=src.crs,
-                            dst_transform=out_kwargs['transform'],
-                            dst_crs=out_kwargs['crs'],
-                            resampling=resampling,
-                            num_threads=threads)
+                    echoer.item('Reprojecting all bands in image')
+                    rasterio.warp.reproject(
+                        source=src_img,
+                        destination=dest_img,
+                        src_transform=src.affine,
+                        src_crs=src.crs,
+                        dst_transform=out_kwargs['transform'],
+                        dst_crs=out_kwargs['crs'],
+                        resampling=resampling,
+                        num_threads=threads)
 
-                        if mask:
-                            dest_img[geom_mask] = src.nodata or ndv
+                    if mask:
+                        dest_img[..., geom_mask] = src.nodata or ndv
 
-                        dst.write_band(i, dest_img)
+                    dst.write(dest_img)
+
+                    # DEPRICATED: warp one band at a time
+                    # NOTE: warping all bands at once is faster but requires more memory
+                    # dest_img = np.empty(
+                    #     (out_kwargs['height'], out_kwargs['width']),
+                    #     dtype=src.dtypes[0])
+                    #
+                    # for i in range(1, src.count + 1):
+                    #     echoer.item('Reprojecting band {}'.format(i))
+                    #     rasterio.warp.reproject(
+                    #         source=rasterio.band(src, i),
+                    #         destination=dest_img,
+                    #         src_transform=src.affine,
+                    #         src_crs=src.crs,
+                    #         dst_transform=out_kwargs['transform'],
+                    #         dst_crs=out_kwargs['crs'],
+                    #         resampling=resampling,
+                    #         num_threads=threads)
+                    #
+                    #     if mask:
+                    #         dest_img[geom_mask] = src.nodata or ndv
+                    #
+                    #     dst.write_band(i, dest_img)
