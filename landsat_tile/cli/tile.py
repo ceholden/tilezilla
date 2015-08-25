@@ -218,7 +218,13 @@ def tile(ctx, source, tile_dir, ext,
                     if mask:
                         dest_img[..., geom_mask] = src.nodata or ndv
 
-                    dst.write(dest_img)
+                    # Check to see if first band has any data
+                    if np.all(dest_img[0, :, :] == dst.nodata):
+                        echoer.warning('Tile has no unmasked data. Deleting')
+                        if os.path.exists(destination):
+                            os.remove(destination)
+                    else:
+                        dst.write(dest_img)
 
                     # DEPRICATED: warp one band at a time
                     # NOTE: warping all bands at once is faster but requires more memory
