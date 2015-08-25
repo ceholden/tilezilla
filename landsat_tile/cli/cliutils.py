@@ -60,9 +60,9 @@ class Echoer(object):
 
         Information messages a prepended with "*   "
         """
-        msg = click.style(msg, fg='black', **kwargs)
+        msg = click.style(msg, **kwargs)
         pre = click.style('*   ' + ' ' * self.message_indent,
-                          fg='black', bold=True)
+                          bold=True)
 
         click.echo(pre + msg, file=self.file, err=self.err)
 
