@@ -168,7 +168,8 @@ def tile(ctx, source, tile_dir, ext,
                     'affine': params['transform'],
                     'transform': params['transform'],
                     'width': params['width'],
-                    'height': params['height']
+                    'height': params['height'],
+                    'nodata': ndv or src.nodata
                 })
                 out_kwargs.update(**creation_options)
 
@@ -216,7 +217,8 @@ def tile(ctx, source, tile_dir, ext,
                         num_threads=threads)
 
                     if mask:
-                        dest_img[..., geom_mask] = src.nodata or ndv
+                        # Fill n_band x n with NDV using fancy indexing
+                        dest_img[:, geom_mask] = np.array(dst.nodatavals)[:, np.newaxis]
 
                     # Check to see if first band has any data
                     if np.all(dest_img[0, :, :] == dst.nodata):
