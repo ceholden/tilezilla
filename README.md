@@ -1,5 +1,5 @@
 # landsat_tile
-Utility for creating degree by degree tiles of Landsat data in some wide area projection
+Convert Landsat products (Level 1 or Climate Data Record) into roughly 1°x1° tiles suitable for large scale mapping beyond traditional WRS-2 path and row or UTM zone boundaries. Input images can be reprojected into a suitable projection and grid to mimic pre-existing products (e.g., [National Land Cover Database (NLCD)](http://www.mrlc.gov/index.php)) or users can define their own projection and grid. Timeseries assembled from such tiles can easily incorporate observations from multiple viewing geometries by taking advantage of "sidelap" areas in adjacent WRS-2 paths.
 
 ## Demo
 
