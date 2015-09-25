@@ -133,6 +133,9 @@ def tile(ctx, source, tile_dir, ext,
             echoer.info('Image intersects with {} tiles'.
                         format(len(tile_coords)))
 
+            echoer.item('Reading in input image')
+            src_img = src.read(masked=True)
+
             # Create all tiles for each source
             echoer.process('Creating image tiles')
             for lon, lat in tile_coords:
@@ -199,11 +202,11 @@ def tile(ctx, source, tile_dir, ext,
                         invert=False)
 
                 with rasterio.open(destination, 'w', **out_kwargs) as dst:
-                    echoer.item('Reading in input image')
+                    echoer.item('Allocating memory for output')
                     dest_img = np.empty(
                         (src.count, out_kwargs['height'], out_kwargs['width']),
                         dtype=src.dtypes[0])
-                    src_img = src.read(masked=True)
+
 
                     echoer.item('Reprojecting all bands in image')
                     rasterio.warp.reproject(
