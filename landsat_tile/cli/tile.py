@@ -216,6 +216,8 @@ def tile(ctx, source, tile_dir, ext,
                         src_crs=src.crs,
                         dst_transform=out_kwargs['transform'],
                         dst_crs=out_kwargs['crs'],
+                        src_nodata=out_kwargs['nodata'],
+                        dst_nodata=out_kwargs['nodata'],
                         resampling=resampling,
                         num_threads=threads)
 
