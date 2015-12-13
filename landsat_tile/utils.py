@@ -26,7 +26,7 @@ def calc_tile_intersection(bounds, crs):
         crs (dict): coordinate reference system dict readable by rasterio
 
       Returns:
-        tuple: tuple of ((lon, lat), ...) upper left corners intersecting
+        list: list of ((lon, lat), ...) upper left corners intersecting
             provided bounds
 
     """
@@ -45,7 +45,7 @@ def calc_tile_intersection(bounds, crs):
     lats = np.arange(min(lats), max(lats) + 1)
 
     # All possible combinations
-    return tuple(itertools.product(lons, lats))
+    return list(itertools.product(lons, lats))
 
 
 def match_to_grid(match, grid, pix_size):

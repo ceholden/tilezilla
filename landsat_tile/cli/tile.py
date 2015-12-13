@@ -128,27 +128,37 @@ def tile(ctx, source, tile_dir, ext,
                     else:
                         echoer.warning('Tile UL {} does not overlap'.
                                        format(_tc))
-                tile_coords = tuple(_tile_coords)
+                tile_coords = list(_tile_coords)
 
             echoer.info('Image intersects with {} tiles'.
                         format(len(tile_coords)))
+
+            # Check for overwrite
+            destinations = []
+            print(tile_coords)
+            for lon, lat in tile_coords[:]:
+                print(lon, lat)
+                destination = utils.get_tile_output_name(
+                    source, tile_dir, lon, lat, ext=ext, decimals=0)
+                if os.path.exists(destination) and not overwrite:
+                    echoer.item('Already processed tile and not --overwrite. '
+                                'Skipping {}'.format((lon, lat)))
+                    tile_coords.remove((lon, lat))
+                    continue
+                else:
+                    echoer.info('Tiling {}'.format((lon, lat)))
+                    destinations.append(destination)
+
+            if not tile_coords:
+                echoer.info('No tiles to output. Exiting')
+                ctx.exit(0)
 
             echoer.item('Reading in input image')
             src_img = src.read(masked=True)
 
             # Create all tiles for each source
             echoer.process('Creating image tiles')
-            for lon, lat in tile_coords:
-                destination = utils.get_tile_output_name(source, tile_dir,
-                                                         lon, lat,
-                                                         ext=ext,
-                                                         decimals=0)
-
-                if os.path.exists(destination) and not overwrite:
-                    echoer.item('Already processed tile and not --overwrite. '
-                                'Skipping {}'.format((lon, lat)))
-                    continue
-
+            for destination, (lon, lat) in zip(destinations, tile_coords):
                 try:
                     os.makedirs(os.path.dirname(destination))
                 except OSError as exception:
@@ -156,7 +166,6 @@ def tile(ctx, source, tile_dir, ext,
                         echoer.error('Error creating destination folder {d}'.
                                      format(d=os.path.dirname(destination)))
                         raise
-
                 echoer.process('Tiling {} to {}'.format((lon, lat),
                                                         destination))
 
