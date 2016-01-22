@@ -52,12 +52,12 @@ def match_to_grid(match, grid, pix_size):
     """ Return new postings for input that coalign with grid
 
     Args:
-      match (iterable): X or Y coordinates of input extent to be repositioned
-      grid_xy (iterable): X or Y coordinates of grid extent to match
-      pix_size (iterable): X or Y pixel sizes of data to match
+        match (iterable): X or Y coordinates of input extent to be repositioned
+        grid_xy (iterable): X or Y coordinates of grid extent to match
+        pix_size (iterable): X or Y pixel sizes of data to match
 
     Returns:
-      tuple: new X/Y coordinate of matched input
+        tuple: new X/Y coordinate of matched input
 
     """
     new_coords = []
@@ -73,12 +73,12 @@ def tile_grid_parameters(lon, lat, grid):
     """ Return bounds, affine transform, and size of lon/lat tile in grid crs
 
     Args:
-      lon (float): longitude
-      lat (float): latitude
-      grid (dict): grid parameters, including 'bounds', 'res', and 'crs'
+        lon (float): longitude
+        lat (float): latitude
+        grid (dict): grid parameters, including 'bounds', 'res', and 'crs'
 
     Returns:
-      dict: bounds, affine transform, width, height, bounds_lonlat
+        dict: bounds, affine transform, width, height, bounds_lonlat
 
     """
     # Formulate tile bounds
@@ -116,16 +116,16 @@ def get_tile_output_name(source, tile_dir, lon, lat, ext=None, decimals=0):
             $(basename $(dirname $source))/$(basename $source).${ext}
 
     Args:
-      source (str): path to source filename
-      tile_dir (str): path to tile root directory
-      lon (float): longitude of upper left of tile
-      lat (float): latitude of upper left of tile
-      ext (str): file format extension (default: None)
-      decimals (int): number of decimal places to retain in float->str
-        conversion of `lon` and `lat`
+        source (str): path to source filename
+        tile_dir (str): path to tile root directory
+        lon (float): longitude of upper left of tile
+        lat (float): latitude of upper left of tile
+        ext (str): file format extension (default: None)
+        decimals (int): number of decimal places to retain in float->str
+            conversion of `lon` and `lat`
 
     Return:
-      str: absolute path of destination filename
+        str: absolute path of destination filename
 
     """
     # Format lon and lat
@@ -158,11 +158,11 @@ def intersects_bounds(a_bounds, b_bounds):
     """ Return True/False if a intersects b
 
     Args:
-      a_bounds (iterable): bounds of a (left bottom right top)
-      b_bounds (iterable): bounds of b (left bottom right top)
+        a_bounds (iterable): bounds of a (left bottom right top)
+        b_bounds (iterable): bounds of b (left bottom right top)
 
     Returns:
-      bool: True/False if a intersects b
+        bool: True/False if a intersects b
 
     """
     a = bounds_to_polygon(a_bounds)
@@ -175,10 +175,10 @@ def bounds_to_polygon(bounds):
     """ Returns Shapely polygon of bounds
 
     Args:
-      bounds (iterable): bounds (left bottom right top)
+        bounds (iterable): bounds (left bottom right top)
 
     Returns:
-      shapely.geometry.Polygon: polygon of bounds
+        shapely.geometry.Polygon: polygon of bounds
 
     """
     return shapely.geometry.Polygon([
@@ -193,13 +193,13 @@ def get_tile_geometry(lon, lat, size=1):
     """ Return a Shapely geometry for a given tile
 
     Args:
-      lon (float): upper left longitude coordinate
-      lat (float): upper left latitude coordinate
-      size (float or tuple): one or more float values specifying the tile size.
-        If one value is specified, tile is assumed to be square.
+        lon (float): upper left longitude coordinate
+        lat (float): upper left latitude coordinate
+        size (float or tuple): one or more float values specifying the tile
+            size. If one value is specified, tile is assumed to be square.
 
     Returns:
-      dict: tile geometry as GeoJSON dict
+        dict: tile geometry as GeoJSON dict
 
     """
     geojson = """

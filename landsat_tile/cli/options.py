@@ -34,8 +34,8 @@ def callback_lnglat(ctx, param, value):
         # Cardinal direction and coordinate should fall into [0] or [1]
         if len(mag_dir) < 2:
             raise click.BadParameter(
-                    'Could not parse input lon/lat coordinate',
-                    param=param.name, param_hint=value)
+                'Could not parse input lon/lat coordinate',
+                param=param.name, param_hint=value)
         try:
             magnitude = float(mag_dir[0])
         except:
