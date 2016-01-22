@@ -3,5 +3,46 @@
 import json
 import pkgutil
 
-_grid_data = pkgutil.get_data('landsat_tile', 'data/grids.json')
-GRIDS = json.loads(_grid_data)
+import rasterio.crs
+
+
+# Load grid from package data
+def retrieve_grids():
+    """ Retrieve default grids packaged within ``landsat_tile``
+
+    Returns:
+        dict: default grids packaged within ``landsat_tile``
+    """
+    grids = json.loads(pkgutil.get_data('landsat_tile', 'data/grids.json'))
+    for key in grids:
+        grids[key]['crs'] = rasterio.crs.from_string(grids[key]['crs'])
+    return grids
+GRIDS = retrieve_grids()
+
+
+def create_grid_spec(bounds, crs, res):
+    """ Creates a grid specification for use in module
+
+    Args:
+        bounds (iterable): grid bounds (left, bottom, right, top)
+        crs (str): grid coordinate reference system
+        res (iterable): grid x/y resolution
+
+    Raises:
+        ValueError: raise if coordinate reference string could not be parsed
+            to a projection
+
+    Returns:
+        dict: grid specification, including the ``bounds``, ``crs``, and
+            ``res``
+    """
+    _crs = rasterio.crs.from_string(crs)
+    if not _crs:
+        raise ValueError('Could not parse coordinate reference system string '
+                         'to a projection')
+
+    return {
+        'bounds': bounds,
+        'crs': _crs,
+        'res': res
+    }

@@ -97,14 +97,12 @@ def tile(ctx, source, tile_dir, ext,
     else:
         grid = {}
         grid['bounds'] = grid_bounds
-        grid['crs'] = grid_crs
         grid['res'] = grid_res
-
-    try:
-        grid['crs'] = rasterio.crs.from_string(grid['crs'])
-    except ValueError:
-        raise click.BadParameter('Invalid CRS format',
-                                 param=grid_crs, param_hint=grid['crs'])
+        try:
+            grid['crs'] = rasterio.crs.from_string(grid_crs)
+        except ValueError:
+            raise click.BadParameter('Invalid CRS format',
+                                     param=grid_crs, param_hint=grid['crs'])
 
     with rasterio.drivers():
         with rasterio.open(source) as src:
