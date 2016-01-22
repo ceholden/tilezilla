@@ -25,9 +25,9 @@ echoer = cliutils.Echoer(message_indent=0)
 @options.arg_source
 @options.arg_tile_dir
 @click.option('--grid', default=None, type=click.Choice(grids.GRIDS.keys()),
-              help='Use bounds and CRS of a known product')
-@click.option('--grid-bounds', nargs=4, type=float, default=None,
-              help='Grid bounds: left bottom right top')
+              help='Use upper left x/y and CRS of a known product')
+@click.option('--grid-ul', nargs=2, type=float, default=None,
+              help='Grid upper left x/y coordinate (left top)')
 @click.option('--grid-crs', default=None,
               help='Grid coordinate reference system.')
 @click.option('--grid-res', default=None, nargs=2, type=float,
@@ -54,7 +54,7 @@ echoer = cliutils.Echoer(message_indent=0)
 @options.opt_overwrite
 @click.pass_context
 def tile(ctx, source, tile_dir, ext,
-         grid, grid_bounds, grid_crs, grid_res, mask, ndv, dilate, lon, lat,
+         grid, grid_ul, grid_crs, grid_res, mask, ndv, dilate, lon, lat,
          driver, creation_options, resampling, threads, overwrite, no_md):
     u""" Subset to 1x1° tile, reproject, and align to grid one or more images
 
@@ -87,16 +87,16 @@ def tile(ctx, source, tile_dir, ext,
     resampling = getattr(rasterio.warp.RESAMPLING, resampling)
 
     # Handle grid definition
-    if not grid and not (grid_bounds and grid_crs and grid_res):
+    if not grid and not (grid_ul and grid_crs and grid_res):
         raise click.UsageError(
             'Must specify either --grid or provide values for '
-            '--grid-bounds, --grid-crs and --grid-res')
+            '--grid_ul, --grid-crs and --grid-res')
 
     if grid:
-        grid = grids.grids[grid]
+        grid = grids.GRIDS[grid]
     else:
         grid = {}
-        grid['bounds'] = grid_bounds
+        grid['ul'] = grid_ul
         grid['res'] = grid_res
         try:
             grid['crs'] = rasterio.crs.from_string(grid_crs)

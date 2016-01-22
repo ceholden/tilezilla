@@ -75,7 +75,7 @@ def tile_grid_parameters(lon, lat, grid):
     Args:
         lon (float): longitude
         lat (float): latitude
-        grid (dict): grid parameters, including 'bounds', 'res', and 'crs'
+        grid (dict): grid parameters, including 'ul', 'res', and 'crs'
 
     Returns:
         dict: bounds, affine transform, width, height, bounds_lonlat
@@ -95,7 +95,7 @@ def tile_grid_parameters(lon, lat, grid):
 
     # Co-register reprojected tile bounds to grid
     xmin, ymin, xmax, ymax = rasterio.coords.BoundingBox(
-        *match_to_grid(bounds_crs, grid['bounds'], grid['res'] * 2))
+        *match_to_grid(bounds_crs, grid['ul'] * 2, grid['res'] * 2))
 
     out = {}
     out['bounds_lonlat'] = bounds_lonlat

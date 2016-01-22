@@ -20,11 +20,11 @@ def retrieve_grids():
 GRIDS = retrieve_grids()
 
 
-def create_grid_spec(bounds, crs, res):
+def create_grid_spec(ul, crs, res):
     """ Creates a grid specification for use in module
 
     Args:
-        bounds (iterable): grid bounds (left, bottom, right, top)
+        ul (iterable): grid upper left x/y coordinate (left top)
         crs (str): grid coordinate reference system
         res (iterable): grid x/y resolution
 
@@ -42,7 +42,7 @@ def create_grid_spec(bounds, crs, res):
                          'to a projection')
 
     return {
-        'bounds': bounds,
+        'ul': ul,
         'crs': _crs,
         'res': res
     }
