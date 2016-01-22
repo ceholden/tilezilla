@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-i
+# -*- coding: utf-8 -*-
 import errno
 import logging
 import os
@@ -24,7 +24,7 @@ echoer = cliutils.Echoer(message_indent=0)
                           'to grid one or more images')
 @options.arg_source
 @options.arg_tile_dir
-@click.option('--grid', default=None, type=click.Choice(grids.grids.keys()),
+@click.option('--grid', default=None, type=click.Choice(grids.GRIDS.keys()),
               help='Use bounds and CRS of a known product')
 @click.option('--grid-bounds', nargs=4, type=float, default=None,
               help='Grid bounds: left bottom right top')
@@ -43,7 +43,8 @@ echoer = cliutils.Echoer(message_indent=0)
 @options.opt_format
 @options.opt_creation_options
 @click.option('--resampling',
-              type=click.Choice(['nearest', 'bilinear', 'cubic','cubic_spline',
+              type=click.Choice(['nearest', 'bilinear', 'cubic',
+                                 'cubic_spline',
                                  'lanczos', 'average', 'mode']),
               default='nearest', show_default=True, help='Resampling method')
 @click.option('--threads', type=int, default=1, show_default=True,
@@ -135,9 +136,7 @@ def tile(ctx, source, tile_dir, ext,
 
             # Check for overwrite
             destinations = []
-            print(tile_coords)
             for lon, lat in tile_coords[:]:
-                print(lon, lat)
                 destination = utils.get_tile_output_name(
                     source, tile_dir, lon, lat, ext=ext, decimals=0)
                 if os.path.exists(destination) and not overwrite:
@@ -215,7 +214,6 @@ def tile(ctx, source, tile_dir, ext,
                     dest_img = np.empty(
                         (src.count, out_kwargs['height'], out_kwargs['width']),
                         dtype=src.dtypes[0])
-
 
                     echoer.item('Reprojecting all bands in image')
                     rasterio.warp.reproject(

@@ -31,6 +31,7 @@ setup(
     name='landsat_tile',
     version=version,
     packages=find_packages(),
+    package_data={'landsat_tile': ['data/']},
     include_package_data=True,
     install_requires=install_requires,
     entry_points=entry_points
