@@ -1,0 +1,21 @@
+# Conda environment file for YATSM
+# Includes optional dependencies since conda makes installing them pretty easy
+name: landsat_tile
+channels:
+    - ioos
+dependencies:
+    # Base
+    - python=2.7
+    - numpy>=1.8.0
+    # GDAL / rasterio / shapely
+    - gdal
+    - rasterio>=0.30.0
+    - shapely>=1.5.13
+    # Config file
+    - pyyaml>=3.11
+    # Plotting
+    - matplotlib>=1.5.1
+    - pip:
+        # Required but missing from conda
+        - click>=6.0
+        - click_plugins>=1.0
