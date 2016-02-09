@@ -1,6 +1,12 @@
 """ Classes, functions, etc. core to the module
 """
+from collections import namedtuple
+
 import rasterio
+
+
+#: easy access container for a bounding box
+BoundingBox = namedtuple('BoundingBox', ('left', 'bottom', 'right', 'top'))
 
 
 class Band(object):

@@ -1,10 +1,14 @@
 """ Predefined tile specifications and utilities for working with tile systems
 """
+import itertools
 import json
 import pkgutil
 
 import rasterio.crs
 import rasterio
+
+from . import geoutils
+from .core import BoundingBox
 
 
 # Load tile specifications from package data
@@ -40,7 +44,24 @@ class TileSpec(object):
             raise ValueError('Could not parse coordinate reference system '
                              'string to a projection ({})'.format(crs))
 
-    def bounds_to_tiles(self, bounds):
+    def index_to_tile_bounds(self, index):
+        """ Return tile footprint bounds for given index
+
+        Args:
+            index (tuple): tile x/y index
+
+        Returns:
+            BoundingBox: the :attr:`BoundingBox` of a tile
+        """
+
+        return BoundingBox(
+            left=self.ul[0] + index[0] * self.size[0] * self.res[0],
+            right=self.ul[0] + (index[0] + 1) * self.size[0] * self.res[0],
+            top=self.ul[1] - index[1] * self.size[1] * self.res[1],
+            bottom=self.ul[1] - (index[1] + 1) * self.size[1] * self.res[1]
+        )
+
+    def bounds_to_tile_bounds(self, bounds):
         """ Yield the tile footprints for this tile spec intersecting a bounds
 
         .. note::
@@ -55,4 +76,16 @@ class TileSpec(object):
             rasterio.coords.BoundingBox: boundaries for each tile
 
         """
-        pass
+        grid_xs, grid_ys = self._frame_bounds(bounds)
+        for tile_index in itertools.product(grid_xs, grid_ys):
+            tile_bounds = self.index_to_tile_bounds(tile_index)
+            if geoutils.intersects_bounds(bounds, tile_bounds):
+                yield tile_bounds
+
+    def _frame_bounds(self, bounds):
+        min_grid_x = (self.ul[0] - bounds.left) // self.size[0]
+        max_grid_x = (self.ul[0] - bounds.right) // self.size[0]
+        min_grid_y = (self.ul[1] - bounds.top) // self.size[1]
+        max_grid_y = (self.ul[1] - bounds.bottom) // self.size[1]
+        return (range(int(min_grid_x), int(max_grid_x) + 1),
+                range(int(min_grid_y), int(max_grid_y) + 1))
