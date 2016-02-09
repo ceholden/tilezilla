@@ -21,10 +21,7 @@ entry_points = '''
     landsat_tile=landsat_tile.cli.main:cli
 
     [landsat_tile.commands]
-    unzip=landsat_tile.cli.cli:unzip
-    tile=landsat_tile.cli.tile:tile
-    prepare=landsat_tile.cli.prepare:prepare
-    batch=landsat_tile.cli.cli:batch
+    ingest=landsat_tile.cli.ingest:ingest
 '''
 
 setup(

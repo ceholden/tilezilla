@@ -62,22 +62,16 @@ def callback_lnglat(ctx, param, value):
 
 
 # ARGUMENTS
-arg_source = click.argument(
-    'source',
-    metavar='INPUT',
+arg_config = click.argument(
+    'config',
+    metavar='<config>',
     type=click.Path(readable=True, resolve_path=True, dir_okay=False))
 
-arg_sources = click.argument(
-    'sources',
+arg_inputs = click.argument(
+    'inputs',
     nargs=-1,
-    metavar='INPUTS...',
+    metavar='<inputs>...',
     type=click.Path(readable=True, resolve_path=True, dir_okay=False))
-
-arg_tile_dir = click.argument(
-    'tile_dir',
-    nargs=1,
-    metavar='TILE_DIR',
-    type=click.Path(writable=True, file_okay=False, resolve_path=True))
 
 # OPTIONS
 opt_creation_options = click.option(
@@ -103,7 +97,7 @@ opt_longitude = click.option(
     multiple=True,
     show_default=True,
     callback=callback_lnglat,
-    help='Override upper left longitude of tile')
+    help='Only process tile that intersects this longitude')
 
 opt_latitude = click.option(
     '--lat',
@@ -111,7 +105,7 @@ opt_latitude = click.option(
     default=None,
     multiple=True,
     callback=callback_lnglat,
-    help='Override upper left latitude of tile')
+    help='Only process tile that intersects this latitude')
 
 opt_nodata = click.option(
     '--ndv',
