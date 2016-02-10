@@ -6,7 +6,10 @@ import tarfile
 import tempfile
 
 import click
+import numpy as np
 import rasterio
+from rasterio import crs
+from rasterio.warp import calculate_default_transform, reproject, RESAMPLING
 
 
 @contextmanager
@@ -48,11 +51,20 @@ def temp_file():
               show_default=True, help="x/y size")
 @click.option('--pattern', type=str, default='L*.tif', show_default=True,
               help='Image search pattern')
-def miniaturize(source, destination, offset, size, pattern):
+@click.option('--dst-crs', type=str, help='Target coordinate system')
+def miniaturize(source, destination, offset, size, pattern, dst_crs):
     """ Miniaturize an ESPA download
     """
     ox, oy = offset
     sx, sy = size
+    window = ((oy, oy + sy), (ox, ox + sx))
+
+    if dst_crs:
+        try:
+            dst_crs = crs.from_string(dst_crs)
+        except ValueError:
+            raise click.BadParameter('Invalid crs format',
+                                     param=dst_crs, param_hint=dst_crs)
 
     source_id = os.path.basename(source).split(os.extsep, 1)[0]
 
@@ -75,20 +87,43 @@ def miniaturize(source, destination, offset, size, pattern):
                 src_name = os.path.join(source_id, os.path.basename(src))
                 # Copy over window
                 with rasterio.open(src, 'r') as src_ds:
-                    meta = src_ds.meta
+                    meta = src_ds.meta.copy()
                     meta.update({
                         'width': sx,
                         'height': sy,
                         'count': 1,
                     })
+                    if dst_crs:
+                        affine, width, height = calculate_default_transform(
+                            src_ds.crs, dst_crs, sx, sy,
+                            *src_ds.window_bounds(window),
+                            src_ds.res
+                        )
+                        meta.update({
+                            'affine': affine,
+                            'transform': affine,
+                            'width': width,
+                            'height': height,
+                            'crs': dst_crs
+                        })
                     with temp_file() as dst:
                         with rasterio.open(dst, 'w', **meta) as dst_ds:
-                            _dst = src_ds.read(1, window=((oy, oy + sy),
-                                                          (ox, ox + sx)))
-                            dst_ds.write_band(1, _dst)
-                        # from IPython.core.debugger import Pdb; Pdb().set_trace()
-                        # info = tardest.gettarinfo(dst, arcname=src_name)
-                        # tardest.addfile(info)
+                            if dst_crs:
+                                reproject(
+                                    source=rasterio.band(src_ds, 1),
+                                    destination=rasterio.band(dst_ds, 1),
+                                    src_transform=src_ds.affine,
+                                    src_crs=src_ds.crs,
+                                    dst_transform=dst_ds.affine,
+                                    dst_crs=dst_ds.crs,
+                                    src_nodata=src_ds.nodata,
+                                    dst_nodata=dst_ds.nodata,
+                                    resampling=RESAMPLING.nearest
+                                )
+                            else:
+                                dst_ds.write_band(
+                                    1, src_ds.read(1, window=window))
+
                         tardest.add(dst, arcname=src_name)
                         click.echo('Added {} to {}'
                                    .format(src_name, destination))
