@@ -4,11 +4,12 @@ import os
 
 
 class ESPALandsat(object):
-    """ ESPA processed Landsat data
+    """ ESPA processed "Level 2" Landsat data
 
     Args:
-        dirpath (str):
+        path (str): the path to the root directory of the extracted data
+            product
     """
 
-    def __init__(self, dirpath):
-        self.dirpath = dirpath
+    def __init__(self, path):
+        self.path = path
