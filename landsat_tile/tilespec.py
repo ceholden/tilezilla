@@ -27,7 +27,7 @@ TILESPECS = retrieve_tilespecs()
 
 
 class TileSpec(object):
-    """ Tile specification object representation
+    """ A tile specification or tile scheme
 
     Args:
         ul (tuple): upper left X/Y coordinates
@@ -44,25 +44,50 @@ class TileSpec(object):
             raise ValueError('Could not parse coordinate reference system '
                              'string to a projection ({})'.format(crs))
 
-    def index_to_tile_bounds(self, index):
-        """ Return tile footprint bounds for given index
+    def __getitem__(self, index):
+        """ Return a Tile for the grid row/column specified by index
+        """
+        if isinstance(index, tuple):
+            if len(index) > 2:
+                raise IndexError('TileSpec only has two dimensions (row/col)')
+            # _row, _col = [], []
+            if not isinstance(index[0], int) and isinstance(index[1], int):
+                raise NotImplementedError(
+                    'Only support indexing int/int for now')
+            return self.index_to_tile_bounds((index[1], index[0]))
+
+    def _index_to_bounds(self, index):
+        """ Return Tile footprint bounds for given index
 
         Args:
-            index (tuple): tile x/y index
+            index (tuple): tile row/column index
 
         Returns:
             BoundingBox: the :attr:`BoundingBox` of a tile
         """
-
         return BoundingBox(
-            left=self.ul[0] + index[0] * self.size[0] * self.res[0],
-            right=self.ul[0] + (index[0] + 1) * self.size[0] * self.res[0],
-            top=self.ul[1] - index[1] * self.size[1] * self.res[1],
-            bottom=self.ul[1] - (index[1] + 1) * self.size[1] * self.res[1]
+            left=self.ul[0] + index[1] * self.size[0] * self.res[0],
+            right=self.ul[0] + (index[1] + 1) * self.size[0] * self.res[0],
+            top=self.ul[1] - index[0] * self.size[1] * self.res[1],
+            bottom=self.ul[1] - (index[0] + 1) * self.size[1] * self.res[1]
         )
 
-    def bounds_to_tile_bounds(self, bounds):
-        """ Yield the tile footprints for this tile spec intersecting a bounds
+    def _index_to_tile(self, index):
+        """ Return the Tile for given index
+
+        Args:
+            index (tuple): tile row/column index
+
+        Returns:
+            Tile: a Tile object
+        """
+        if index not in self._tiles:
+            bounds = self._index_to_bounds(index)
+            self._tiles[index[1], index[0]] = Tile(bounds, self.crs)
+        return self._tiles[index]
+
+    def bounds_to_tile(self, bounds):
+        """ Yield Tile objects for this TileSpec that intersect a given bounds
 
         .. note::
 
@@ -70,22 +95,55 @@ class TileSpec(object):
             coordinate reference system as :paramref:`crs <.TileSpec.crs>`.
 
         Args:
-            bounds (rasterio.coords.BoundingBox): input bounds
+            bounds (BoundingBox): input bounds
 
         Yields:
-            rasterio.coords.BoundingBox: boundaries for each tile
-
+            Tile: the Tiles that intersect within a bounds
         """
-        grid_xs, grid_ys = self._frame_bounds(bounds)
-        for tile_index in itertools.product(grid_xs, grid_ys):
-            tile_bounds = self.index_to_tile_bounds(tile_index)
-            if geoutils.intersects_bounds(bounds, tile_bounds):
-                yield tile_bounds
+        grid_ys, grid_xs = self._frame_bounds(bounds)
+        for index in itertools.product(grid_ys, grid_xs):
+            tile = self._index_to_tile(index)
+            if geoutils.intersects_bounds(bounds, tile.bounds):
+                yield tile
 
     def _frame_bounds(self, bounds):
         min_grid_x = (self.ul[0] - bounds.left) // self.size[0]
         max_grid_x = (self.ul[0] - bounds.right) // self.size[0]
         min_grid_y = (self.ul[1] - bounds.top) // self.size[1]
         max_grid_y = (self.ul[1] - bounds.bottom) // self.size[1]
-        return (range(int(min_grid_x), int(max_grid_x) + 1),
-                range(int(min_grid_y), int(max_grid_y) + 1))
+        return (range(int(min_grid_y), int(max_grid_y) + 1),
+                range(int(min_grid_x), int(max_grid_x) + 1))
+
+
+class Tile(object):
+    """ A tile
+
+    Args:
+        bounds (BoundingBox): the bounding box of the tile
+        crs (str): the coordinate reference system of the tile
+
+    """
+    def __init__(self, bounds, crs):
+        self.bounds = bounds
+        self.crs = crs
+
+    @property
+    def geom_geojson(self):
+        """ Tile geometry in GeoJSON format
+        """
+        geojson = """
+        {
+            "geometry":
+            {
+                "coordinates": [[
+                    [{top}, {left}],
+                    [{top}, {right}],
+                    [{bottom}, {right}],
+                    [{bottom}, {left}],
+                    [{top}, {left}]
+                ]],
+                "type": "Polygon"
+            }
+        }
+        """.format(**self.bounds._asdict())
+        return json.loads(geojson)
