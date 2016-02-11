@@ -43,6 +43,7 @@ class TileSpec(object):
         if not self.crs:
             raise ValueError('Could not parse coordinate reference system '
                              'string to a projection ({})'.format(crs))
+        self._tiles = {}
 
     def __getitem__(self, index):
         """ Return a Tile for the grid row/column specified by index
@@ -54,7 +55,7 @@ class TileSpec(object):
             if not isinstance(index[0], int) and isinstance(index[1], int):
                 raise NotImplementedError(
                     'Only support indexing int/int for now')
-            return self.index_to_tile_bounds((index[1], index[0]))
+            return self._index_to_tile(index)
 
     def _index_to_bounds(self, index):
         """ Return Tile footprint bounds for given index
@@ -132,9 +133,9 @@ class Tile(object):
         """ Tile geometry in GeoJSON format
         """
         geojson = """
-        {
+        {{
             "geometry":
-            {
+            {{
                 "coordinates": [[
                     [{top}, {left}],
                     [{top}, {right}],
@@ -143,7 +144,7 @@ class Tile(object):
                     [{top}, {left}]
                 ]],
                 "type": "Polygon"
-            }
-        }
+            }}
+        }}
         """.format(**self.bounds._asdict())
         return json.loads(geojson)
