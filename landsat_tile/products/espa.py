@@ -50,7 +50,9 @@ class ESPALandsat(object):
         self.mtl_file = self.mtl_file[0]
         self.xml_file = self.xml_file[0]
 
+        #: MTL: Landsat "MTL" metadata file
         self.mtl = MTL(self.mtl_file)
+        #: BeautifulSoup: Landsat ESPA order XML metadata file
         self.xml = BeautifulSoup(open(self.xml_file), 'lxml')
 
     def __repr__(self):
@@ -155,7 +157,7 @@ class ESPALandsat(object):
     def solar_zenith(self):
         """ float: solar zenith angle during acquisition
         """
-        return self.xml.find('solar_zenith').zenith
+        return self.xml.find('solar_angles').zenith
 
     def _xml_to_band(self, xml):
         """ Parse a bit of XML to a Band """
