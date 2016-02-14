@@ -13,7 +13,7 @@ from collections import OrderedDict
 from .espa import ESPALandsat
 
 PRODUCTS = [
-    ESPALandsat
+    ('ESPALandsat', ESPALandsat)
 ]
 
 

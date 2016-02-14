@@ -42,8 +42,6 @@ class MTL(object):
     """
 
     def __init__(self, path):
-        #: str: path to the MTL file
-        self.path = path
         #: OrderedDict: metadata contained within the MTL file
         self.data = parse_MTL(path)['L1_METADATA_FILE']
 
@@ -83,7 +81,7 @@ class MTL(object):
         return path, row
 
     @lazy_property
-    def ACCA(self):
+    def cloud_cover(self):
         """ ACCA cloud cover score
         """
         return float(dict_keymap_get(self.data,
