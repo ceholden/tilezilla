@@ -22,6 +22,8 @@ entry_points = '''
 
     [landsat_tile.commands]
     ingest=landsat_tile.cli.ingest:ingest
+    spew=landsat_tile.cli.spew:spew
+    shapes=landsat_tile.cli.info:shapes
 '''
 
 setup(
