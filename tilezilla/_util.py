@@ -1,5 +1,9 @@
 """ Helper functions/etc for use within this package
 """
+import shutil
+import tarfile
+import tempfile
+from contextlib import contextmanager
 from functools import reduce, wraps
 
 
@@ -33,3 +37,22 @@ def dict_keymap_set(d, keys, key, value):
     Source: http://stackoverflow.com/a/14692747
     """
     dict_keymap_get(d, keys[:-1])[keys[-1]][key] = value
+
+
+@contextmanager
+def decompress_to(archive):
+    """ Extract archive to temporary directory and yield path
+
+    Args:
+        archive (str): tar, tar.gz, etc. file
+
+    Yields:
+        str: path to directory containing extracted archive
+    """
+    try:
+        _tmp = tempfile.mkdtemp()
+        with tarfile.open(archive) as tgz:
+            tgz.extractall(_tmp)
+        yield _tmp
+    finally:
+        shutil.rmtree(_tmp)

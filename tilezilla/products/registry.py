@@ -25,7 +25,7 @@ class ProductRegistry(object):
     """
     def __init__(self, products):
         self.products = OrderedDict(products)
-        self._order = range(len(self.products))
+        self._order = [k for k in self.products.keys()]
 
     def sniff_product_type(self, path):
         """ Return an initialized product located a given path
@@ -34,10 +34,9 @@ class ProductRegistry(object):
             path (str): the path to the directory containing the product
 
         Returns:
-
-
+            object: a product to work with
         """
-        for name in self.products:
+        for name in self._order:
             try:
                 _product = self.products[name](path)
             except Exception as e:
@@ -46,5 +45,5 @@ class ProductRegistry(object):
                                      path=path,
                                      msg=str(e)))
             else:
-                self.products.insert(0, self.products.pop(name))
+                self._order.insert(0, self.products.pop(name))
                 return _product

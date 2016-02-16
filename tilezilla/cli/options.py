@@ -67,10 +67,10 @@ arg_config = click.argument(
     metavar='<config>',
     type=click.Path(readable=True, resolve_path=True, dir_okay=False))
 
-arg_inputs = click.argument(
-    'inputs',
+arg_sources = click.argument(
+    'sources',
     nargs=-1,
-    metavar='<inputs>...',
+    metavar='<sources>...',
     type=click.Path(readable=True, resolve_path=True, dir_okay=False))
 
 # OPTIONS
