@@ -13,8 +13,8 @@ _context = dict(
 
 
 @click_plugins.with_plugins(ep for ep in
-                            iter_entry_points('landsat_tile.commands'))
-@click.group(help='Landsat tile preprocessing command line interface (CLI)',
+                            iter_entry_points('tilez.commands'))
+@click.group(help='tilezilla command line interface',
              context_settings=_context)
 @click.version_option(__version__)
 @click.option('--verbose', '-v', is_flag=True, help='Be verbose')
@@ -23,7 +23,7 @@ _context = dict(
 def cli(ctx, verbose, quiet):
     # Logging config
     logging.basicConfig()
-    logger = logging.getLogger('landsat_tile')
+    logger = logging.getLogger('tilezilla')
     if verbose:
         logger.setLevel(logging.DEBUG)
     if quiet:

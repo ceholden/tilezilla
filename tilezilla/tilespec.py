@@ -13,12 +13,12 @@ from .core import BoundingBox
 
 # Load tile specifications from package data
 def retrieve_tilespecs():
-    """ Retrieve default tile specifications packaged within ``landsat_tile``
+    """ Retrieve default tile specifications packaged within ``tilezilla``
 
     Returns:
-        dict: default tilespecs packaged within ``landsat_tile``
+        dict: default tilespecs packaged within ``tilezilla``
     """
-    tilespecs = json.loads(pkgutil.get_data('landsat_tile',
+    tilespecs = json.loads(pkgutil.get_data('tilezilla',
                                             'data/tile_specs.json').decode())
     for key in tilespecs:
         tilespecs[key]['crs'] = rasterio.crs.from_string(tilespecs[key]['crs'])

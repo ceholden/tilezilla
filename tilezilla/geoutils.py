@@ -15,7 +15,7 @@ import rasterio.warp
 import shapely
 import shapely.geometry
 
-logger = logging.getLogger('landsat_tile')
+logger = logging.getLogger('tilezilla')
 
 
 def match_to_grid(match, grid, pix_size):

@@ -1,4 +1,4 @@
-landsat_tile.products package
+tilezilla.products package
 =============================
 
 Submodules
@@ -6,12 +6,12 @@ Submodules
 
 .. toctree::
 
-   landsat_tile.products.espa
+   tilezilla.products.espa
 
 Module contents
 ---------------
 
-.. automodule:: landsat_tile.products
+.. automodule:: tilezilla.products
     :members:
     :undoc-members:
     :show-inheritance:

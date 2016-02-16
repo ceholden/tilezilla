@@ -1,7 +1,7 @@
-landsat_tile
+tilezilla
 ============
 
 .. toctree::
    :maxdepth: 4
 
-   landsat_tile
+   tilezilla

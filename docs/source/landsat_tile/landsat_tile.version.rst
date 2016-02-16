@@ -1,7 +1,7 @@
-landsat_tile.version module
+tilezilla.version module
 ===========================
 
-.. automodule:: landsat_tile.version
+.. automodule:: tilezilla.version
     :members:
     :undoc-members:
     :show-inheritance:

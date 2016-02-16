@@ -1,7 +1,7 @@
-landsat_tile.cli.options module
+tilezilla.cli.options module
 ===============================
 
-.. automodule:: landsat_tile.cli.options
+.. automodule:: tilezilla.cli.options
     :members:
     :undoc-members:
     :show-inheritance:

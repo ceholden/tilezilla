@@ -1,6 +1,6 @@
 # Conda environment file for YATSM
 # Includes optional dependencies since conda makes installing them pretty easy
-name: landsat_tile
+name: tilezilla
 channels:
     - ioos
 dependencies:

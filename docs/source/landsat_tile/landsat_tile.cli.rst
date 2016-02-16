@@ -1,4 +1,4 @@
-landsat_tile.cli package
+tilezilla.cli package
 ========================
 
 Submodules
@@ -6,16 +6,16 @@ Submodules
 
 .. toctree::
 
-   landsat_tile.cli.cli
-   landsat_tile.cli.cliutils
-   landsat_tile.cli.main
-   landsat_tile.cli.options
-   landsat_tile.cli.process
+   tilezilla.cli.cli
+   tilezilla.cli.cliutils
+   tilezilla.cli.main
+   tilezilla.cli.options
+   tilezilla.cli.process
 
 Module contents
 ---------------
 
-.. automodule:: landsat_tile.cli
+.. automodule:: tilezilla.cli
     :members:
     :undoc-members:
     :show-inheritance:

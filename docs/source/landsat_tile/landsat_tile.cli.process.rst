@@ -1,7 +1,7 @@
-landsat_tile.cli.process module
+tilezilla.cli.process module
 ===============================
 
-.. automodule:: landsat_tile.cli.process
+.. automodule:: tilezilla.cli.process
     :members:
     :undoc-members:
     :show-inheritance:

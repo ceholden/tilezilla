@@ -1,7 +1,7 @@
-landsat_tile.tilespec module
+tilezilla.tilespec module
 ============================
 
-.. automodule:: landsat_tile.tilespec
+.. automodule:: tilezilla.tilespec
     :members:
     :undoc-members:
     :show-inheritance:
