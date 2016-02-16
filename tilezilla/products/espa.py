@@ -173,7 +173,7 @@ class ESPALandsat(object):
         long_name = xml.find('long_name').text
         units = xml.get('data_units')
         # Filename path
-        path = os.path.join(os.path.dirname(self.path),
+        path = os.path.join(self.path,
                             xml.find('file_name').text)
         # Numeric info
         data_type = np.dtype(xml.get('data_type').lower())
