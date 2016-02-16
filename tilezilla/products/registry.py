@@ -13,7 +13,7 @@ import logging
 
 from .espa import ESPALandsat
 
-logger = logging.getLogger('landsat_tile')
+logger = logging.getLogger('tilezilla')
 
 PRODUCTS = [
     ('ESPALandsat', ESPALandsat)

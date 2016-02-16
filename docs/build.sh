@@ -1,6 +1,6 @@
 #!/bin/bash
 
-project=landsat_tile
+project=tilezilla
 
 cd $(dirname $0)
 

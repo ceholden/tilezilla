@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# landsat_tile documentation build configuration file, created by
+# tilezilla documentation build configuration file, created by
 # sphinx-quickstart on Mon Feb  8 17:25:02 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -66,7 +66,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'landsat_tile'
+project = 'tilezilla'
 copyright = '2016, Chris Holden'
 author = 'Chris Holden'
 
@@ -135,7 +135,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 html_context = dict(
     display_github=True,
     github_user="ceholden",
-    github_repo="landsat_tile",
+    github_repo="tilezilla",
     github_version="master",
     conf_py_path="/docs/",
     source_suffix=".rst",
@@ -231,7 +231,7 @@ html_show_sourcelink = False
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'landsat_tiledoc'
+htmlhelp_basename = 'tilezilladoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -253,7 +253,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'landsat_tile.tex', 'landsat\\_tile Documentation',
+    (master_doc, 'tilezilla.tex', 'tilezilla Documentation',
      'Chris Holden', 'manual'),
 ]
 
@@ -283,7 +283,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'landsat_tile', 'landsat_tile Documentation',
+    (master_doc, 'tilezilla', 'tilezilla Documentation',
      [author], 1)
 ]
 
@@ -297,8 +297,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'landsat_tile', 'landsat_tile Documentation',
-     author, 'landsat_tile', 'One line description of project.',
+    (master_doc, 'tilezilla', 'tilezilla Documentation',
+     author, 'tilezilla', 'One line description of project.',
      'Miscellaneous'),
 ]
 

@@ -1,7 +1,7 @@
-landsat_tile.utils module
+tilezilla.utils module
 =========================
 
-.. automodule:: landsat_tile.utils
+.. automodule:: tilezilla.utils
     :members:
     :undoc-members:
     :show-inheritance:

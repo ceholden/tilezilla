@@ -1,7 +1,7 @@
-landsat_tile.products.espa module
+tilezilla.products.espa module
 =================================
 
-.. automodule:: landsat_tile.products.espa
+.. automodule:: tilezilla.products.espa
     :members:
     :undoc-members:
     :show-inheritance:

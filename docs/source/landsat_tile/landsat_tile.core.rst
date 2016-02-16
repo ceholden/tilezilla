@@ -1,7 +1,7 @@
-landsat_tile.core module
+tilezilla.core module
 ========================
 
-.. automodule:: landsat_tile.core
+.. automodule:: tilezilla.core
     :members:
     :undoc-members:
     :show-inheritance:

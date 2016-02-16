@@ -7,7 +7,7 @@ import click
 
 from . import cliutils
 
-logger = logging.getLogger('landsat_tile')
+logger = logging.getLogger('tilezilla')
 echoer = cliutils.Echoer(message_indent=0)
 
 

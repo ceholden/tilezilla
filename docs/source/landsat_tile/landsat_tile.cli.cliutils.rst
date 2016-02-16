@@ -1,7 +1,7 @@
-landsat_tile.cli.cliutils module
+tilezilla.cli.cliutils module
 ================================
 
-.. automodule:: landsat_tile.cli.cliutils
+.. automodule:: tilezilla.cli.cliutils
     :members:
     :undoc-members:
     :show-inheritance:
