@@ -6,10 +6,9 @@ import os
 
 import click
 
-from . import cliutils
-from . import options
-from ..products import registry
-from .._util import decompress_to
+from . import cliutils, options
+from .. import products, tilespec
+from .._util import decompress_to, reproject_as_needed
 
 logger = logging.getLogger('tilezilla')
 echoer = cliutils.Echoer(message_indent=0)
@@ -17,8 +16,16 @@ echoer = cliutils.Echoer(message_indent=0)
 
 @click.command(short_help='Ingest known products into tile dataset format')
 @options.arg_sources
+@options.opt_tilespec_str
 @click.pass_context
-def ingest(ctx, sources):
+def ingest(ctx, sources, tilespec_str):
+    # TODO: add --tilespec-defn (a JSON/YAML config file with tile params)
+    # TODO: add --tilespec-[attrs] where [attrs] are tilespec attributes
+    if not tilespec_str:
+        raise click.UsageError('Must specify a tile specification to use')
+
+    spec = tilespec.TILESPECS[tilespec_str]
+
     for source in sources:
         _source = os.path.splitext(os.path.splitext(
                                    os.path.basename(source))[0])[0]
