@@ -99,7 +99,6 @@ class ESPALandsat(object):
         """
         bands = []
         for _xml in self.xml.find_all('band'):
-            # from IPython.core.debugger import Pdb; Pdb().set_trace()
             bands.append(self._xml_to_band(_xml))
         return bands
 
