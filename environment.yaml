@@ -1,24 +1,26 @@
-# Conda environment file for YATSM
+# Conda environment file for tilezilla
 # Includes optional dependencies since conda makes installing them pretty easy
 name: tilezilla
 channels:
     - ioos
 dependencies:
-    # Base
+    # base
     - python=3.5
     - numpy>=1.10.0
-    # GDAL / rasterio / shapely
+    # geographic data packages
     - gdal
     - rasterio>=0.31.0
     - shapely>=1.5.13
-    # Config file
+    # config file
     - pyyaml>=3.11
-    # Metadata parsing
+    # metadata parsing
     - beautifulsoup4
-    # Plotting
+    # plotting
     - matplotlib>=1.5.1
+    # Required but missing from conda
     - pip:
-        # Required but missing from conda
+        # better datetime
+        - arrow>=0.7.0
+        # cli
         - click>=6.0
         - click_plugins>=1.0
-        - arrow>=0.7.0
