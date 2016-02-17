@@ -23,22 +23,6 @@ def lazy_property(prop):
     return property(wrapper)
 
 
-def dict_keymap_get(d, keys):
-    """ Get value from a list of keys for a nested dictionary
-
-    Source: http://stackoverflow.com/a/14692747
-    """
-    return reduce(lambda _d, _k: _d[_k], keys, d)
-
-
-def dict_keymap_set(d, keys, key, value):
-    """ Set value from a list of keys for a nested dictionary
-
-    Source: http://stackoverflow.com/a/14692747
-    """
-    dict_keymap_get(d, keys[:-1])[keys[-1]][key] = value
-
-
 @contextmanager
 def decompress_to(archive):
     """ Extract archive to temporary directory and yield path
@@ -56,3 +40,8 @@ def decompress_to(archive):
         yield _tmp
     finally:
         shutil.rmtree(_tmp)
+
+
+@contextmanager
+def reproject_as_needed():
+    from IPython.core.debugger import Pdb; Pdb().set_trace()  # noqa
