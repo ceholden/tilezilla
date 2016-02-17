@@ -2,6 +2,8 @@ import re
 
 import click
 
+from .. import tilespec
+
 
 # CALLBACKS
 def callback_dict(ctx, param, value):
@@ -64,16 +66,21 @@ def callback_lnglat(ctx, param, value):
 # ARGUMENTS
 arg_config = click.argument(
     'config',
-    metavar='<config>',
     type=click.Path(readable=True, resolve_path=True, dir_okay=False))
 
 arg_sources = click.argument(
     'sources',
     nargs=-1,
-    metavar='<sources>...',
     type=click.Path(readable=True, resolve_path=True, dir_okay=False))
 
 # OPTIONS
+opt_tilespec_str = click.option(
+    'tilespec_str',
+    '--tilespec',
+    type=click.Choice(tilespec.TILESPECS.keys()),
+    help='Tile specification'
+)
+
 opt_creation_options = click.option(
     '--co',
     'creation_options',
