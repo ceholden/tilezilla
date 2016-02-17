@@ -8,7 +8,8 @@ import click
 
 from . import cliutils, options
 from .. import products, tilespec
-from .._util import decompress_to, reproject_as_needed
+from .._util import decompress_to
+from ..geoutils import reproject_as_needed
 
 logger = logging.getLogger('tilezilla')
 echoer = cliutils.Echoer(message_indent=0)
@@ -35,5 +36,8 @@ def ingest(ctx, sources, tilespec_str):
             if _source in inside_dir:
                 tmpdir = os.path.join(tmpdir, _source)
 
-            product = registry.sniff_product_type(tmpdir)
-            print(product)
+            product = products.registry.sniff_product_type(tmpdir)
+            for band in product.bands:
+                with reproject_as_needed(band.src, spec) as src:
+                    from IPython.core.debugger import Pdb; Pdb().set_trace()
+                    print("To be continued... {}".format(src))

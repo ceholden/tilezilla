@@ -4,7 +4,7 @@ import shutil
 import tarfile
 import tempfile
 from contextlib import contextmanager
-from functools import reduce, wraps
+from functools import wraps
 
 
 def lazy_property(prop):
@@ -40,8 +40,3 @@ def decompress_to(archive):
         yield _tmp
     finally:
         shutil.rmtree(_tmp)
-
-
-@contextmanager
-def reproject_as_needed():
-    from IPython.core.debugger import Pdb; Pdb().set_trace()  # noqa
