@@ -11,21 +11,6 @@ from . import geoutils
 from .core import BoundingBox
 
 
-# Load tile specifications from package data
-def retrieve_tilespecs():
-    """ Retrieve default tile specifications packaged within ``tilezilla``
-
-    Returns:
-        dict: default tilespecs packaged within ``tilezilla``
-    """
-    tilespecs = json.loads(pkgutil.get_data('tilezilla',
-                                            'data/tile_specs.json').decode())
-    for key in tilespecs:
-        tilespecs[key]['crs'] = rasterio.crs.from_string(tilespecs[key]['crs'])
-    return tilespecs
-TILESPECS = retrieve_tilespecs()
-
-
 class TileSpec(object):
     """ A tile specification or tile scheme
 
@@ -148,3 +133,22 @@ class Tile(object):
         }}
         """.format(**self.bounds._asdict())
         return json.loads(geojson)
+
+
+# Load tile specifications from package data
+def retrieve_tilespecs():
+    """ Retrieve default tile specifications packaged within ``tilezilla``
+
+    Returns:
+        dict: default tilespecs packaged within ``tilezilla`` as TileSpec
+            objects
+    """
+    tilespecs = json.loads(pkgutil.get_data('tilezilla',
+                                            'data/tile_specs.json').decode())
+    for key in tilespecs:
+        tilespecs[key]['crs'] = rasterio.crs.from_string(tilespecs[key]['crs'])
+        tilespecs[key] = TileSpec(**tilespecs[key])
+    return tilespecs
+
+#: dict: Built-in tile specifications available by default
+TILESPECS = retrieve_tilespecs()
