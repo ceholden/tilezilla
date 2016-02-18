@@ -1,0 +1,27 @@
+language: python
+sudo: false
+python:
+  - "2.7"
+  - "3.5"
+install:
+    # Install conda environment
+    - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+          wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+      else
+          wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      fi
+    - bash miniconda.sh -b -p $HOME/miniconda
+    - export PATH="$HOME/miniconda/bin:$PATH"
+    - hash -r
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update -q conda
+    - conda env create -n test -f environment.yaml python=$TRAVIS_PYTHON_VERSION
+    - source activate test
+    # Install tilezilla
+    - pip install -e .
+    # Install test dependencies
+    - pip install -r tests/requirements.txt
+script:
+    - py.test --cov tilezilla --cov-report term-missing tests/
+after_success:
+    - coveralls

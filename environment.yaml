@@ -5,7 +5,6 @@ channels:
     - ioos
 dependencies:
     # base
-    - python=3.5
     - numpy>=1.10.0
     # geographic data packages
     - gdal
