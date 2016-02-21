@@ -40,7 +40,6 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-    'sphinx_paramlinks'
 ]
 extlinks = {
     'issue': ('https://github.com/ceholden/yatsm/issues/%s', 'issue ')
@@ -49,6 +48,8 @@ intersphinx_mapping = {
     # 'rasterio': (, None)
     'python': ('https://docs.python.org/3/', None)
 }
+autodoc_member_order = 'groupwise'
+napoleon_use_ivar = True
 todo_include_todos = True
 
 # Add any paths that contain templates here, relative to this directory.
