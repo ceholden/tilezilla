@@ -90,7 +90,7 @@ class TileSpec(object):
         .. note::
 
             It is required that the input ``bounds`` be in the same
-            coordinate reference system as :paramref:`crs <.TileSpec.crs>`.
+            coordinate reference system as ``crs``.
 
         Args:
             bounds (BoundingBox): input bounds
