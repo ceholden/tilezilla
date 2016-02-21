@@ -4,6 +4,7 @@ import itertools
 import json
 import pkgutil
 
+import affine
 import rasterio.crs
 import rasterio
 
@@ -81,7 +82,7 @@ class TileSpec(object):
         """
         if index not in self._tiles:
             bounds = self._index_to_bounds(index)
-            self._tiles[index] = Tile(bounds, self.crs)
+            self._tiles[index] = Tile(bounds, self.crs, index, self)
         return self._tiles[index]
 
     def bounds_to_tile(self, bounds):
@@ -120,12 +121,23 @@ class Tile(object):
     Args:
         bounds (BoundingBox): the bounding box of the tile
         crs (str): the coordinate reference system of the tile
+        index (tuple): the index of this tile in the larger tile specification
+        tilespec (TileSpec): the tile specification
 
     """
 
-    def __init__(self, bounds, crs):
+    def __init__(self, bounds, crs, index, tilespec):
         self.bounds = bounds
         self.crs = crs
+        self.index = index
+        self.tilespec = tilespec
+
+    @property
+    def affine(self):
+        """ The ``Affine`` transform for the tile
+        """
+        return affine.Affine(self.tilespec.res[0], 0, self.bounds.left,
+                             0, -self.tilespec.res[1], self.bounds.top)
 
     @property
     def geom_geojson(self):
