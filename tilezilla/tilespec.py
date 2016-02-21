@@ -81,7 +81,7 @@ class TileSpec(object):
         """
         if index not in self._tiles:
             bounds = self._index_to_bounds(index)
-            self._tiles[index[1], index[0]] = Tile(bounds, self.crs)
+            self._tiles[index] = Tile(bounds, self.crs)
         return self._tiles[index]
 
     def bounds_to_tile(self, bounds):
@@ -105,10 +105,11 @@ class TileSpec(object):
                 yield tile
 
     def _frame_bounds(self, bounds):
-        min_grid_x = int((self.ul[0] - bounds.left) // self.size[0])
-        max_grid_x = int((self.ul[0] - bounds.right) // self.size[0])
-        min_grid_y = int((self.ul[1] - bounds.top) // self.size[1])
-        max_grid_y = int((self.ul[1] - bounds.bottom) // self.size[1])
+        px, py = self.size[0] * self.res[0], self.size[1] * self.res[1]
+        min_grid_x = int((bounds.left - self.ul[0]) // px)
+        max_grid_x = int((bounds.right - self.ul[0]) // px)
+        min_grid_y = int((self.ul[1] - bounds.top) // py)
+        max_grid_y = int((self.ul[1] - bounds.bottom) // py)
         return (range(min_grid_y, max_grid_y + 1),
                 range(min_grid_x, max_grid_x + 1))
 
