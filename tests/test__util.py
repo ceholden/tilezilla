@@ -1,10 +1,8 @@
 """ Tests for yatsm._util
 """
 import os
-import tarfile
 
 import pytest
-import rasterio
 
 from tilezilla import _util
 
@@ -45,7 +43,10 @@ def test_decompress_to(ESPA_order, ESPA_archive):
     for root, dirs, files in os.walk(ESPA_order):
         espa_files.extend(files)
 
-    with tarfile.open(ESPA_archive, 'r') as tgz:
-        tgz_files = [os.path.basename(f) for f in tgz.getnames()]
+    with _util.decompress_to(ESPA_archive) as path:
+        tgz_files = []
+        for root, dirs, files in os.walk(path):
+            tgz_files.extend(files)
 
-    assert all([f in tgz_files for f in espa_files])
+    assert all([f in espa_files for f in tgz_files])
+    assert not os.path.exists(path)  # path should be deleted when context ends
