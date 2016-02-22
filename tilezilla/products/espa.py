@@ -9,12 +9,13 @@ import arrow
 from bs4 import BeautifulSoup
 import numpy as np
 
+from .core import BaseProduct
 from .._util import lazy_property
 from ..core import Band, BoundingBox
 from ..sensors.landsat import MTL
 
 
-class ESPALandsat(object):
+class ESPALandsat(BaseProduct):
     """ ESPA processed "Level 2" Landsat data
 
     Args:
@@ -47,8 +48,8 @@ class ESPALandsat(object):
                           'pattern ({}): {}'
                           .format(self.xml_pattern, self.xml_file))
 
-        self.mtl_file = self.mtl_file[0]
-        self.xml_file = self.xml_file[0]
+        self.mtl_file = os.path.abspath(self.mtl_file[0])
+        self.xml_file = os.path.abspath(self.xml_file[0])
 
         #: MTL: Landsat "MTL" metadata file
         self.mtl = MTL(self.mtl_file)
@@ -77,7 +78,8 @@ class ESPALandsat(object):
             lry=self.bounding_box.bottom,
             lrx=self.bounding_box.right,
             nbands=len(self.bands),
-            band_names='\n            '.join([''] + self.band_long_names)
+            band_names='\n'.join(
+                [''] + [' ' * 12 + b.long_name for b in self.bands])
         )
         return textwrap.dedent(s)
 
@@ -95,40 +97,24 @@ class ESPALandsat(object):
 
     @lazy_property
     def bands(self):
-        """ list: bands (:class:`Band`) contained within ESPA dataset
+        """ list[:class:`Band`]: bands contained within ESPA dataset
         """
         bands = []
         for _xml in self.xml.find_all('band'):
             bands.append(self._xml_to_band(_xml))
         return bands
 
-    @lazy_property
-    def band_long_names(self):
-        """ list: names of bands contained within ESPA dataset
-        """
-        return [b.long_name for b in self.bands]
-
     @property
     def timeseries_id(self):
-        """ str: ``timeseries_id`` identifying the Landsat acquistion scene ID
+        """ str: the Landsat acquistion scene ID
         """
         return self.mtl.scene_id
-
-    # @lazy_property
-    # def acquisition_date(self):
-    #     """ Arrow: scene acquisition date as Arrow
-    #     """
-    #     return arrow.get(self.xml.find('acquisition_date').text)
-    #
-    # @lazy_property
-    # def scene_center_time(self):
-    #     """ Arrow: scene center acqusition time as Arrow
-    #     """
-    #     return arrow.get(self.xml.find('scene_center_time').text)
 
     @lazy_property
     def time(self):
         """ Arrow: date and time of acquisition
+
+        The time of this acquisition is taken as the scene center time.
         """
         ad = self.xml.find('acquisition_date').text
         ct = self.xml.find('scene_center_time').text
@@ -145,6 +131,12 @@ class ESPALandsat(object):
         """ str: platform holding instrument for this acquisition
         """
         return self.xml.find('satellite').text
+
+    @property
+    def metadata_files(self):
+        """ dict: name and paths to metadata files for this observation
+        """
+        return dict(MTL=self.mtl_file, ESPA_XML=self.xml_file)
 
     @lazy_property
     def solar_azimuth(self):

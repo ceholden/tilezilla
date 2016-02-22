@@ -9,6 +9,7 @@
        repeated fails for subsequent ingests (i.e., assume all )
 """
 from .registry import PRODUCTS, ProductRegistry
+from .espa import ESPALandsat
 
 #: ProductRegistry: registry of product types usable within this package
 registry = ProductRegistry(PRODUCTS)
