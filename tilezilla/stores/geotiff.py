@@ -47,7 +47,7 @@ class GeoTIFFStore(object):
         self.tile = tile
         self.path = path
         self.product = product
-        # Update metadata options with tile details
+
         self.meta_options.update({
             'affine': tile.affine,
             'transform': tile.affine,
@@ -55,22 +55,27 @@ class GeoTIFFStore(object):
             'height': tile.tilespec.size[1]
         })
 
-    def store_variable(self, band, src=None, overwrite=False):
+        #: str: The directory prefix (dirname) for this product store
+        self._dirname = os.path.join(self.path, self.product.timeseries_id)
+        mkdir_p(self._dirname)
+
+    def store_variable(self, band, overwrite=False):
         """ Store product contained within this tile
         """
-        _path = os.path.join(self.path, self.product.timeseries_id)
-        mkdir_p(_path)
-        dst_path = os.path.join(_path, os.path.basename(band.path))
+        dst_path = self._band_filename(band)
 
-        _src = src or band.src
-
-        dst_meta = _src.meta.copy()
+        dst_meta = band.src.meta.copy()
         dst_meta.update(self.meta_options)
         with rasterio.open(dst_path, 'w', **dst_meta) as dst:
-            src_window = src.window(*dst.bounds, boundless=True)
-            dst.write_band(1, src.read(1, window=src_window, boundless=True))
+            src_window = band.src.window(*dst.bounds, boundless=True)
+            dst.write_band(1,
+                           band.src.read(1, window=src_window, boundless=True))
 
     def retrieve_variable(self, **kwargs):
         """ Retrieve a product stored within this tile
         """
         pass
+    def _band_filename(self, band):
+        """ Return full filename for a given band
+        """
+        return os.path.join(self._dirname, os.path.basename(band.path))
