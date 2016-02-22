@@ -5,6 +5,7 @@ import logging
 import os
 
 import click
+import rasterio
 
 from . import cliutils, options
 from .. import products, tilespec
@@ -46,11 +47,13 @@ def ingest(ctx, sources, tilespec_str, path):
             product = products.registry.sniff_product_type(tmpdir)
             for band in product.bands:
                 with reproject_as_needed(band.src, spec) as src:
+                    band.src = src
+                    band.band = rasterio.band(src, 1)
                     # from IPython.core.debugger import Pdb; Pdb().set_trace()
                     for tile in spec.bounds_to_tile(src.bounds):
                         _path = os.path.join(path, 'y{}_x{}'.format(
                             tile.index[0], tile.index[1]))
                         mkdir_p(_path)
                         store = GeoTIFFStore(_path, tile, product)
-                        store.store_variable(band, src=src, overwrite=True)
+                        store.store_variable(band, overwrite=True)
                     print("To be continued... {}".format(src))
