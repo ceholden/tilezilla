@@ -10,7 +10,7 @@ from . import cliutils, options
 from .. import products, tilespec
 from .._util import decompress_to, mkdir_p
 from ..geoutils import reproject_as_needed
-from ..store import GeoTIFFStore
+from ..stores import GeoTIFFStore
 
 logger = logging.getLogger('tilezilla')
 echoer = cliutils.Echoer(message_indent=0)
