@@ -1,6 +1,7 @@
 """ GeoTIFF storage method
 """
 import os
+import shutil
 
 import rasterio
 
@@ -30,7 +31,8 @@ class GeoTIFFStore(object):
         path (str): The root directory where the tile should be stored. The
             path specified should already separate among tiles, if desired.
         tile (Tile): The dataset tile to store
-        product (TODO): a product to store
+        product (BaseProduct): A :class:`tilezilla.product.core.BaseProduct`
+            to store
 
     """
 
@@ -74,7 +76,24 @@ class GeoTIFFStore(object):
     def retrieve_variable(self, **kwargs):
         """ Retrieve a product stored within this tile
         """
-        pass
+        raise NotImplementedError('Reading is less important right now for '
+                                  'this driver at the moment as data from'
+                                  'it can be read directly from disk.')
+
+    def store_file(self, path):
+        """ Store a file with the product in an accessible way
+
+        An example use case for this method include storing metadata files
+        associated with a given product (e.g., "MTL" text files for Landsat).
+
+        Args:
+            path (str): The path of the file to be stored
+
+        Returns:
+            str: The path of the file once copied into this product's store
+        """
+        return shutil.copy(path, self._dirname)
+
     def _band_filename(self, band):
         """ Return full filename for a given band
         """
