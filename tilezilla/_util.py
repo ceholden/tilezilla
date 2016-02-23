@@ -1,7 +1,10 @@
 """ Helper functions/etc for use within this package
 """
 import errno
+import fnmatch
 import os
+import pathlib
+import re
 import shutil
 import tarfile
 import tempfile
@@ -60,3 +63,27 @@ def mkdir_p(d):
             pass
         else:
             raise err
+
+
+def find_in_path(path, pattern, regex=False):
+    """ Return a sequence of paths that match a given pattern in a directory
+
+    Args:
+        path (str): The root folder to find within
+        pattern (str): Search pattern, either glob style or a regular
+            expression
+        regex (bool): True if ``pattern`` is glob style, else False
+
+    Returns:
+        list[pathlib.Path]:
+    """
+    if not regex:
+        pattern = fnmatch.translate(pattern)
+    regex = re.compile(pattern)
+
+    found = []
+    for root, dirs, files in os.walk(str(path)):
+        for fname in files:
+            if regex.search(fname):
+                found.append(pathlib.Path(root).joinpath(fname).resolve())
+    return found
