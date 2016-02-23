@@ -1,5 +1,6 @@
 """ Predefined tile specifications and utilities for working with tile systems
 """
+import inspect
 import itertools
 import json
 import pkgutil
@@ -133,6 +134,18 @@ class Tile(object):
         self.tilespec = tilespec
 
     @property
+    def vertical(self):
+        """ int: The horizontal index of this tile in its tile specification
+        """
+        return self.index[0]
+
+    @property
+    def horizontal(self):
+        """ int: The horizontal index of this tile in its tile specification
+        """
+        return self.index[1]
+
+    @property
     def affine(self):
         """ The ``Affine`` transform for the tile
         """
@@ -160,6 +173,20 @@ class Tile(object):
         """.format(**self.bounds._asdict())
         return json.loads(geojson)
 
+    def str_format(self, s):
+        """ Return a string .format'd with tile attributes
+
+        Args:
+            s (s): A string with format-compatible substitution fields
+
+        Returns:
+            str: A formatted string
+        """
+        attrs = {
+            k: v for k, v in inspect.getmembers(self)
+            if not callable(v) and not k.startswith('_')
+        }
+        return s.format(**attrs)
 
 # Load tile specifications from package data
 def retrieve_tilespecs():
