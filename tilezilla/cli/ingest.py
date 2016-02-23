@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Process an image or compressed tarball of images to tiles
 """
+import fnmatch
 import logging
 import os
 
@@ -32,6 +33,11 @@ def ingest(ctx, sources, tilespec_str, path):
     if not tilespec_str:
         raise click.UsageError('Must specify a tile specification to use')
 
+    # TODO: user input for bands to save
+    include_filter = {
+        'long_name': ['*surface reflectance*', '*cfmask*']
+    }
+
     spec = tilespec.TILESPECS[tilespec_str]
 
     for source in sources:
@@ -45,7 +51,8 @@ def ingest(ctx, sources, tilespec_str, path):
                 tmpdir = os.path.join(tmpdir, _source)
 
             product = products.registry.sniff_product_type(tmpdir)
-            for band in product.bands:
+            desired_bands = include_bands(product.bands, include_filter)
+            for band in desired_bands:
                 with reproject_as_needed(band.src, spec) as src:
                     band.src = src
                     band.band = rasterio.band(src, 1)
@@ -57,3 +64,23 @@ def ingest(ctx, sources, tilespec_str, path):
                         store = GeoTIFFStore(_path, tile, product)
                         store.store_variable(band, overwrite=True)
                     print("To be continued... {}".format(src))
+
+
+def include_bands(bands, include):
+    """ Include subset of ``bands`` based on ``include``
+
+    Args:
+        bands (list[Band]): Bands to filter
+        include (dict): Dictionary of 'attribute':['pattern',] used to filter
+            input bands for inclusion
+
+    Returns:
+        list[Band]: Included bands
+    """
+    out = set()
+    for attr in include:
+        for pattern in include[attr]:
+            for b in bands:
+                if fnmatch.filter([getattr(b, attr)], pattern):
+                    out.add(b)
+    return out
