@@ -38,6 +38,11 @@ def ingest(ctx, sources, tilespec_str, path):
         'long_name': ['*surface reflectance*', '*cfmask*']
     }
 
+    # TODO: config file should describe the basename of tile directories
+    # TODO: document choice of where these variables come from (Tile)
+    # TODO: parametrize zfill
+    tile_root = os.path.join(path, 'h{horizontal:04d}v{vertical:04d}')
+
     spec = tilespec.TILESPECS[tilespec_str]
 
     for source in sources:
@@ -45,6 +50,7 @@ def ingest(ctx, sources, tilespec_str, path):
         _source = os.path.splitext(os.path.splitext(
                                    os.path.basename(source))[0])[0]
         with decompress_to(source) as tmpdir:
+            # TODO: meh?
             # Handle archive name as inner folder
             inside_dir = os.listdir(tmpdir)
             if _source in inside_dir:
@@ -58,10 +64,9 @@ def ingest(ctx, sources, tilespec_str, path):
                     band.band = rasterio.band(src, 1)
                     # from IPython.core.debugger import Pdb; Pdb().set_trace()
                     for tile in spec.bounds_to_tile(src.bounds):
-                        _path = os.path.join(path, 'y{}_x{}'.format(
-                            tile.index[0], tile.index[1]))
-                        mkdir_p(_path)
-                        store = GeoTIFFStore(_path, tile, product)
+                        tile_path = tile.str_format(tile_root)
+                        echoer.item('Saving to: {}'.format(tile_path))
+                        store = GeoTIFFStore(tile_path, tile, product)
                         store.store_variable(band, overwrite=True)
                     print("To be continued... {}".format(src))
 
