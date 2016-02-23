@@ -1,8 +1,7 @@
 """ Handler for Landsat data processed and distributed through ESPA
 """
 import glob
-import os
-import pprint
+import pathlib
 import textwrap
 
 import arrow
@@ -10,7 +9,7 @@ from bs4 import BeautifulSoup
 import numpy as np
 
 from .core import BaseProduct
-from .._util import lazy_property
+from .._util import find_in_path, lazy_property
 from ..core import Band, BoundingBox
 from ..sensors.landsat import MTL
 
@@ -26,11 +25,11 @@ class ESPALandsat(BaseProduct):
         IOError: raise if MTL or ESPA product metadata cannot be found
     """
     def __init__(self, path, xml_pattern='L*.xml', mtl_pattern='L*_MTL.txt'):
-        self.path = path
+        self.path = pathlib.Path(path).resolve()
         self.xml_pattern = xml_pattern
         self.mtl_pattern = mtl_pattern
 
-        self.mtl_file = glob.glob(os.path.join(self.path, self.mtl_pattern))
+        self.mtl_file = find_in_path(self.path, self.mtl_pattern)
         if not self.mtl_file:
             raise IOError('Cannot find MTL metadata file in {}'
                           .format(self.path))
@@ -39,7 +38,7 @@ class ESPALandsat(BaseProduct):
                           'pattern ({}): {}'
                           .format(self.mtl_pattern, self.mtl_file))
 
-        self.xml_file = glob.glob(os.path.join(self.path, self.xml_pattern))
+        self.xml_file = find_in_path(self.path, self.xml_pattern)
         if not self.xml_file:
             raise IOError('Cannot find ESPA XML metadata file in {}'
                           .format(self.path))
@@ -48,13 +47,15 @@ class ESPALandsat(BaseProduct):
                           'pattern ({}): {}'
                           .format(self.xml_pattern, self.xml_file))
 
-        self.mtl_file = os.path.abspath(self.mtl_file[0])
-        self.xml_file = os.path.abspath(self.xml_file[0])
+        #: pathlib.Path: Path to the Landsat metadata "MTL" file
+        self.mtl_file = self.mtl_file[0]
+        #: pathlib.path: Path to the ESPA order XML metadata file
+        self.xml_file = self.xml_file[0]
 
         #: MTL: Landsat "MTL" metadata file
-        self.mtl = MTL(self.mtl_file)
+        self.mtl = MTL(str(self.mtl_file))
         #: BeautifulSoup: Landsat ESPA order XML metadata file
-        self.xml = BeautifulSoup(open(self.xml_file), 'lxml')
+        self.xml = BeautifulSoup(open(str(self.xml_file)), 'lxml')
 
     def __repr__(self):
         s = """
@@ -164,8 +165,7 @@ class ESPALandsat(BaseProduct):
         long_name = xml.find('long_name').text
         units = xml.find('data_units').text
         # Filename path
-        path = os.path.join(self.path,
-                            xml.find('file_name').text)
+        path = str(self.xml_file.parent.joinpath(xml.find('file_name').text))
         # Numeric info
         data_type = np.dtype(xml.get('data_type').lower())
 
