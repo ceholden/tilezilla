@@ -47,16 +47,10 @@ def ingest(ctx, sources, tilespec_str, path):
 
     for source in sources:
         echoer.info('Working on: {}'.format(source))
-        _source = os.path.splitext(os.path.splitext(
-                                   os.path.basename(source))[0])[0]
-        with decompress_to(source) as tmpdir:
-            # TODO: meh?
-            # Handle archive name as inner folder
-            inside_dir = os.listdir(tmpdir)
-            if _source in inside_dir:
-                tmpdir = os.path.join(tmpdir, _source)
 
+        with decompress_to(source) as tmpdir:
             product = products.registry.sniff_product_type(tmpdir)
+
             desired_bands = include_bands(product.bands, include_filter)
             for band in desired_bands:
                 with reproject_as_needed(band.src, spec) as src:
@@ -66,9 +60,9 @@ def ingest(ctx, sources, tilespec_str, path):
                     for tile in spec.bounds_to_tile(src.bounds):
                         tile_path = tile.str_format(tile_root)
                         echoer.item('Saving to: {}'.format(tile_path))
+
                         store = GeoTIFFStore(tile_path, tile, product)
                         store.store_variable(band, overwrite=True)
-                    print("To be continued... {}".format(src))
 
 
 def include_bands(bands, include):
