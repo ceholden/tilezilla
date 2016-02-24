@@ -8,7 +8,7 @@ dependencies:
     - numpy>=1.10.0
     # geographic data packages
     - gdal
-    - rasterio>=0.31.0
+    # - rasterio>=0.31.0
     - shapely>=1.5.13
     # config file
     - pyyaml>=3.11
@@ -25,3 +25,5 @@ dependencies:
         - click_plugins>=1.0
         # pathlib for Python2
         - pathlib>=1.0.1
+        # TODO: remove temp workaround for missing libcom_err.so
+        - rasterio>=0.31
