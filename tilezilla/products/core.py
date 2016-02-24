@@ -18,12 +18,6 @@ class BaseProduct(object):
         self.path = path
 
     @abc.abstractproperty
-    def bounding_box(self):
-        """ BoundingBox: bounding box of product in latitude, longitude
-        """
-        return
-
-    @abc.abstractproperty
     def bands(self):
         """ list[:class:`Band`]: bands contained within dataset
         """
@@ -56,5 +50,18 @@ class BaseProduct(object):
     @abc.abstractproperty
     def metadata_files(self):
         """ dict: name and paths to any metadata files for this observation
+        """
+        return
+
+    @abc.abstractmethod
+    def bounding_box(self, crs='EPSG:4326'):
+        """ Return the bounding box of this product in some projection
+
+        Args:
+            crs (str or dict): The coordinate reference system, interpretable
+                by rasterio
+
+        Returns:
+            BoundingBox: bounding box of product
         """
         return
