@@ -65,25 +65,49 @@ def mkdir_p(d):
             raise err
 
 
-def find_in_path(path, pattern, regex=False):
+def find_in_path(path, patterns, regex=False):
     """ Return a sequence of paths that match a given pattern in a directory
 
     Args:
         path (str): The root folder to find within
-        pattern (str): Search pattern, either glob style or a regular
+        patterns (tuple[str]): Search patterns, either glob style or a regular
             expression
         regex (bool): True if ``pattern`` is glob style, else False
 
     Returns:
         list[pathlib.Path]:
     """
-    if not regex:
-        pattern = fnmatch.translate(pattern)
-    regex = re.compile(pattern)
-
     found = []
     for root, dirs, files in os.walk(str(path)):
-        for fname in files:
-            if regex.search(fname):
-                found.append(pathlib.Path(root).joinpath(fname).resolve())
+        matched = multiple_filter(sorted(files), patterns, regex=regex)
+        found.extend([pathlib.Path(root).joinpath(fname).resolve()
+                      for fname in matched])
     return found
+
+
+def multiple_filter(strings, patterns, regex=False):
+    """ Apply multiple search filters to a sequence of strings
+
+    Args:
+        strings (list[str]): A collection of strings to search
+        patterns (list[str]): A collection of search patterns, etiher glob
+            style or regular expression
+        regex (bool): True if ``patterns`` is a set of regular expressions
+
+    Returns:
+        list[str]: A subset of ``strings`` that matched a pattern in
+            ``patterns``
+    """
+    if isinstance(patterns, str):
+        patterns = (patterns, )
+    if not regex:
+        patterns = map(fnmatch.translate, patterns)
+    regexs = map(re.compile, patterns)
+
+    found = []
+    for _regex in regexs:
+        for s in strings:
+            if _regex.search(s):
+                found.append(s)
+    uniq_found = sorted(set(found), key=lambda item: found.index(item))
+    return uniq_found

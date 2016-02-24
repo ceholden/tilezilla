@@ -90,3 +90,29 @@ def test_find_in_path_success_2(ex_tmpdir):
 def test_find_in_path_success_3(ex_tmpdir):
     assert len(_util.find_in_path(str(ex_tmpdir), '^asdf$', True)) == 0
     assert len(_util.find_in_path(str(ex_tmpdir), '^asdf$')) == 0
+
+
+# multiple_filter
+@pytest.fixture
+def ex_strings():
+    return [
+        'Landsat_sr_band1.tif',
+        'Landsat_cfmask.tif',
+        'METADATA',
+        'SOMETHING.xml',
+        'Landsat_temp.tif'
+    ]
+
+
+def test_multiple_filter_success_1(ex_strings):
+    patterns = ['L*sr_band*.tif', '*.xml']
+    matched = _util.multiple_filter(ex_strings, patterns, False)
+    assert sorted(matched) == matched
+    assert matched == ['Landsat_sr_band1.tif', 'SOMETHING.xml']
+
+
+def test_multiple_filter_success_2(ex_strings):
+    pattern = '^L.*sr_band.*.tif$'
+    matched = _util.multiple_filter(ex_strings, pattern, regex=True)
+    assert len(matched) == 1
+    assert matched == ['Landsat_sr_band1.tif']
