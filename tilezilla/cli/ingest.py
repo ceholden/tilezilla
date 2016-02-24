@@ -8,6 +8,7 @@ import os
 
 import click
 import rasterio
+import six
 
 from . import cliutils, options
 from .. import products, tilespec
@@ -52,19 +53,26 @@ def ingest(ctx, sources, tilespec_str, path):
         with decompress_to(source) as tmpdir:
             product = products.registry.sniff_product_type(tmpdir)
 
+            # TODO: get bounding_box and reproject to tilespec.crs
+            # TODO: next, get tiles before doing anything to bands
+
             desired_bands = include_bands(product.bands, include_filter)
             for band in desired_bands:
                 echoer.process('Tiling: {}'.format(band.long_name))
                 with reproject_as_needed(band.src, spec) as src:
                     band.src = src
                     band.band = rasterio.band(src, 1)
-                    # from IPython.core.debugger import Pdb; Pdb().set_trace()
                     for tile in spec.bounds_to_tile(src.bounds):
                         tile_path = tile.str_format(tile_root)
                         echoer.item('Saving to: {}'.format(tile_path))
 
                         store = GeoTIFFStore(tile_path, tile, product)
                         store.store_variable(band, overwrite=True)
+                        for md_name, md_file in six.iteritems(
+                                product.metadata_files):
+                            echoer.item('Storing')
+                            store.store_file(
+                                str(product.metadata_files[md_file]))
 
 
 def include_bands(bands, include, regex=False):
