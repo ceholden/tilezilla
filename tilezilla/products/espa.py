@@ -1,12 +1,12 @@
 """ Handler for Landsat data processed and distributed through ESPA
 """
-import glob
 import pathlib
 import textwrap
 
 import arrow
 from bs4 import BeautifulSoup
 import numpy as np
+from rasterio import crs as rio_crs, warp as rio_warp
 
 from .core import BaseProduct
 from .._util import find_in_path, lazy_property
@@ -58,6 +58,7 @@ class ESPALandsat(BaseProduct):
         self.xml = BeautifulSoup(open(str(self.xml_file)), 'lxml')
 
     def __repr__(self):
+        bbox = self.bounding_box()
         s = """
         EROS Science Processing Architecture (ESPA) Landsat product
 
@@ -74,27 +75,15 @@ class ESPALandsat(BaseProduct):
         """.format(
             scene_id=self.timeseries_id,
             time=self.time,
-            uly=self.bounding_box.top,
-            ulx=self.bounding_box.left,
-            lry=self.bounding_box.bottom,
-            lrx=self.bounding_box.right,
+            uly=bbox.top,
+            ulx=bbox.left,
+            lry=bbox.bottom,
+            lrx=bbox.right,
             nbands=len(self.bands),
             band_names='\n'.join(
                 [''] + [' ' * 12 + b.long_name for b in self.bands])
         )
         return textwrap.dedent(s)
-
-    @lazy_property
-    def bounding_box(self):
-        """ BoundingBox: bounding box of product in latitude, longitude
-        """
-        _xml = self.xml.find('bounding_coordinates')
-        return BoundingBox(
-            left=float(_xml.find('west').text),
-            top=float(_xml.find('north').text),
-            bottom=float(_xml.find('south').text),
-            right=float(_xml.find('east').text)
-        )
 
     @lazy_property
     def bands(self):
@@ -150,6 +139,29 @@ class ESPALandsat(BaseProduct):
         """ float: solar zenith angle during acquisition
         """
         return self.xml.find('solar_angles').zenith
+
+    def bounding_box(self, crs='EPSG:4326'):
+        """ Return the bounding box of this product in some projection
+
+        Args:
+            crs (str or dict): The coordinate reference system, interpretable
+                by rasterio
+
+        Returns:
+            BoundingBox: bounding box of product
+        """
+        _xml = self.xml.find('bounding_coordinates')
+        bbox = BoundingBox(
+            left=float(_xml.find('west').text),
+            top=float(_xml.find('north').text),
+            bottom=float(_xml.find('south').text),
+            right=float(_xml.find('east').text)
+        )
+        if not rio_crs.is_same_crs(crs, 'EPSG:4326'):
+            return BoundingBox(
+                *rio_warp.transform_bounds('EPSG:4326', crs, *bbox))
+        else:
+            return bbox
 
     def _xml_to_band(self, xml):
         """ Parse a bit of XML to a Band """
