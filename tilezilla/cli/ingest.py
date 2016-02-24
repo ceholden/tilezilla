@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Process an image or compressed tarball of images to tiles
 """
+from collections import OrderedDict
 import fnmatch
 import logging
 import os
@@ -10,7 +11,7 @@ import rasterio
 
 from . import cliutils, options
 from .. import products, tilespec
-from .._util import decompress_to, mkdir_p
+from .._util import decompress_to, multiple_filter
 from ..geoutils import reproject_as_needed
 from ..stores import GeoTIFFStore
 
@@ -53,6 +54,7 @@ def ingest(ctx, sources, tilespec_str, path):
 
             desired_bands = include_bands(product.bands, include_filter)
             for band in desired_bands:
+                echoer.process('Tiling: {}'.format(band.long_name))
                 with reproject_as_needed(band.src, spec) as src:
                     band.src = src
                     band.band = rasterio.band(src, 1)
@@ -65,21 +67,22 @@ def ingest(ctx, sources, tilespec_str, path):
                         store.store_variable(band, overwrite=True)
 
 
-def include_bands(bands, include):
+def include_bands(bands, include, regex=False):
     """ Include subset of ``bands`` based on ``include``
 
     Args:
         bands (list[Band]): Bands to filter
         include (dict): Dictionary of 'attribute':['pattern',] used to filter
             input bands for inclusion
+        regex (bool): True if patterns in ``include`` are sets of regular
+            expressions
 
     Returns:
         list[Band]: Included bands
     """
-    out = set()
+    out = []
     for attr in include:
-        for pattern in include[attr]:
-            for b in bands:
-                if fnmatch.filter([getattr(b, attr)], pattern):
-                    out.add(b)
-    return out
+        attrs = OrderedDict(((getattr(b, attr), b) for b in bands))
+        match = multiple_filter(attrs.keys(), include[attr], regex=regex)
+        out.extend([attrs[k] for k in match])
+    return sorted(set(out), key=lambda item: out.index(item))
