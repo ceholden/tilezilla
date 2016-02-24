@@ -23,7 +23,8 @@ dependencies:
         # cli
         - click>=6.0
         - click_plugins>=1.0
-        # pathlib for Python2
+        # Compatibility with Python2
         - pathlib>=1.0.1
+        - six==1.10.0
         # TODO: remove temp workaround for missing libcom_err.so
         - rasterio>=0.31
