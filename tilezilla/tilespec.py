@@ -6,8 +6,8 @@ import json
 import pkgutil
 
 import affine
-import rasterio.crs
 import rasterio
+import rasterio.crs
 
 from . import geoutils
 from .core import BoundingBox
@@ -18,7 +18,7 @@ class TileSpec(object):
 
     Args:
         ul (tuple): upper left X/Y coordinates
-        crs (str): coordinate system reference string
+        crs (dict): ``rasterio`` compatible coordinate system reference dict
         res (tuple): pixel X/Y resolution
         size (tuple): number of pixels in X/Y dimension of each tile
         desc (str): description of tile specification (default: None)
@@ -29,9 +29,9 @@ class TileSpec(object):
         self.crs = crs
         self.res = res
         self.size = size
-        if not self.crs:
+        if not rasterio.crs.is_valid_crs(self.crs):
             raise ValueError('Could not parse coordinate reference system '
-                             'string to a projection ({})'.format(crs))
+                             'string to a valid projection ({})'.format(crs))
         self.desc = desc or 'unnamed'
         self._tiles = {}
 
@@ -187,6 +187,7 @@ class Tile(object):
             if not callable(v) and not k.startswith('_')
         }
         return s.format(**attrs)
+
 
 # Load tile specifications from package data
 def retrieve_tilespecs():
