@@ -15,7 +15,9 @@ install:
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    - conda env create -n test -f environment.yaml python=$TRAVIS_PYTHON_VERSION
+    # Create first so we can set python version, then update for dependencies
+    - conda create -n test python=$TRAVIS_PYTHON_VERSION
+    - conda env update -n test -f environment.yaml
     - source activate test
     # Install tilezilla
     - pip install -e .
