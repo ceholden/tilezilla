@@ -132,13 +132,13 @@ class ESPALandsat(BaseProduct):
     def solar_azimuth(self):
         """ float: solar azimuth angle during acqusition
         """
-        return self.xml.find('solar_angles').azimuth
+        return float(self.xml.find('solar_angles').attrs['azimuth'])
 
     @lazy_property
     def solar_zenith(self):
         """ float: solar zenith angle during acquisition
         """
-        return self.xml.find('solar_angles').zenith
+        return float(self.xml.find('solar_angles').attrs['zenith'])
 
     def bounding_box(self, crs='EPSG:4326'):
         """ Return the bounding box of this product in some projection
