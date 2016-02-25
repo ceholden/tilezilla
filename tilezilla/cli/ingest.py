@@ -70,9 +70,7 @@ def ingest(ctx, sources, tilespec_str, path):
                         store.store_variable(band, overwrite=True)
                         for md_name, md_file in six.iteritems(
                                 product.metadata_files):
-                            echoer.item('Storing')
-                            store.store_file(
-                                str(product.metadata_files[md_file]))
+                            store.store_file(str(md_file))
 
 
 def include_bands(bands, include, regex=False):
