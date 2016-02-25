@@ -1,0 +1,53 @@
+# Metadata
+version: 0.1.0
+path: /home/ceholden/tiles
+
+# Tile specification
+tilespec: WELD_CONUS
+# tilespec:
+#     # Coordinate reference system
+#     crs: EPSG:5070
+#     # Upper left x/y coordinate
+#     ul: 15, 15
+#     # Resolution (x/y) of each pixel
+#     res: 30, 30
+#     # Number of pixels (x/y) in each tile
+#     size: 500, 500
+
+# Tile storage method
+store:
+    name: GeoTIFF
+    # ...
+
+# Products
+ESPA_Landsat:
+    include_filter:
+        regex: False
+        # Attributes of each product band to include
+        long_name:
+            - '*surface reflectance*'
+            - '*brightness temperature*'
+            - '*cfmask_band*'
+    # TODO: meh
+    sensor_name_mapping:
+        - TM:
+            - blue: 1
+            - green: 2
+            - red: 3
+            - nir: 4
+            - swir1: 5
+            - swir2: 7
+        - ETM+:
+            - blue: 1
+            - green: 2
+            - red: 3
+            - nir: 4
+            - swir1: 5
+            - swir2: 7
+        - OLI:
+            - blue: 2
+            - green: 3
+            - red: 4
+            - nir: 5
+            - swir1: 6
+            - swir2: 7
