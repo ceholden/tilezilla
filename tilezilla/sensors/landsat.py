@@ -16,7 +16,7 @@ def parse_MTL(fid):
     """
     data = OrderedDict()
     for line in fid:
-        split = line.decode().split(' = ')
+        split = str(line).split(' = ')
         if len(split) == 2:
             data[split[0].strip().strip('"')] = split[1].strip().strip('"')
     return data
