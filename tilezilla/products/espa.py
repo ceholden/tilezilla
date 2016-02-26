@@ -53,7 +53,7 @@ class ESPALandsat(BaseProduct):
         self.xml_file = self.xml_file[0]
 
         #: MTL: Landsat "MTL" metadata file
-        self.mtl = MTL(str(self.mtl_file))
+        self.mtl = MTL.from_file(str(self.mtl_file))
         #: BeautifulSoup: Landsat ESPA order XML metadata file
         self.xml = BeautifulSoup(open(str(self.xml_file)), 'lxml')
 
