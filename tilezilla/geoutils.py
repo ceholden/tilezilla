@@ -12,6 +12,8 @@ import shapely
 import shapely.geometry
 from rasterio import crs, warp
 
+from .core import BoundingBox
+
 logger = logging.getLogger('tilezilla')
 
 
@@ -90,6 +92,22 @@ def bounds_to_polygon(bounds):
     ])
 
 
+def meta_to_bounds(affine, width, height, **kwargs):
+    """ Convert ``rasterio`` **dataset.meta to a BoundingBox
+
+    Args:
+        affine (affine.Affine): Affine transformation
+        width (int): Number of columns
+        height (int): Number of rows
+
+    Returns:
+        BoundingBox: The box bounding the extent of the raster
+    """
+    a, b, c, d, e, f, _, _, _ = affine
+    return BoundingBox(c, f + e * height, c + a * width, f)
+
+
+# TODO: delete?
 def tile_to_geojson(lon, lat, size=1):
     """ Return a Shapely geometry for a given tile
 

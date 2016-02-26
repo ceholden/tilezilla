@@ -3,9 +3,11 @@
 import os
 import shutil
 
+import numpy as np
 import rasterio
 
 from .._util import mkdir_p
+from ..geoutils import meta_to_bounds
 
 
 class GeoTIFFStore(object):
@@ -46,8 +48,8 @@ class GeoTIFFStore(object):
     }
 
     def __init__(self, path, tile, product):
-        self.tile = tile
         self.path = path
+        self.tile = tile
         self.product = product
 
         self.meta_options.update({
@@ -64,14 +66,20 @@ class GeoTIFFStore(object):
     def store_variable(self, band, overwrite=False):
         """ Store product contained within this tile
         """
+        # Ensure source data has observations (i.e., not an edge)
+        dst_bounds = meta_to_bounds(**self.meta_options)
+        src_window = band.src.window(*dst_bounds, boundless=True)
+
+        src_data = band.src.read(1, window=src_window, boundless=True)
+        if np.all(src_data == band.fill_value):
+            return
+
         dst_path = self._band_filename(band)
 
         dst_meta = band.src.meta.copy()
         dst_meta.update(self.meta_options)
         with rasterio.open(dst_path, 'w', **dst_meta) as dst:
-            src_window = band.src.window(*dst.bounds, boundless=True)
-            dst.write_band(1,
-                           band.src.read(1, window=src_window, boundless=True))
+            dst.write_band(1, src_data)
 
     def retrieve_variable(self, **kwargs):
         """ Retrieve a product stored within this tile
