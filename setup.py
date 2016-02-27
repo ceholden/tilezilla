@@ -14,7 +14,9 @@ install_requires = [
     'click_plugins',
     'numpy',
     'rasterio',
-    'shapely'
+    'shapely',
+    'pyyaml',
+    'sqlalchemy',
 ]
 
 entry_points = '''
