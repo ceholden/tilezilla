@@ -55,6 +55,9 @@ def ingest(ctx, sources, tilespec_str, path):
 
             # TODO: get bounding_box and reproject to tilespec.crs
             # TODO: next, get tiles before doing anything to bands
+            bbox = product.bounding_box(spec.crs)
+            tiles = spec.bounds_to_tile(bbox)
+            from IPython.core.debugger import Pdb; Pdb().set_trace()
 
             desired_bands = include_bands(product.bands, include_filter)
             for band in desired_bands:

@@ -63,7 +63,8 @@ class ESPALandsat(BaseProduct):
         EROS Science Processing Architecture (ESPA) Landsat product
 
         Scene ID: {scene_id}
-        Acquisition date time: {time}
+        Acquisition date/time: {acquired}
+        Processing date/time: {processed}
         Bounding Box:
             Top:        {uly}
             Left:       {ulx}
@@ -74,7 +75,8 @@ class ESPALandsat(BaseProduct):
         {band_names}
         """.format(
             scene_id=self.timeseries_id,
-            time=self.time,
+            acquired=self.acquisition_datetime,
+            processed=self.processed_datetime,
             uly=bbox.top,
             ulx=bbox.left,
             lry=bbox.bottom,
@@ -101,7 +103,7 @@ class ESPALandsat(BaseProduct):
         return self.mtl.scene_id
 
     @lazy_property
-    def time(self):
+    def acquisition_datetime(self):
         """ Arrow: date and time of acquisition
 
         The time of this acquisition is taken as the scene center time.
@@ -109,6 +111,12 @@ class ESPALandsat(BaseProduct):
         ad = self.xml.find('acquisition_date').text
         ct = self.xml.find('scene_center_time').text
         return arrow.get('{}T{}'.format(ad, ct))
+
+    @lazy_property
+    def processed_datetime(self):
+        """ Arrow: date and time of processing
+        """
+        return arrow.get(self.xml.find('production_date').text)
 
     @lazy_property
     def instrument(self):
