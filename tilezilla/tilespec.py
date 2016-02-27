@@ -27,6 +27,7 @@ class TileSpec(object):
     def __init__(self, ul, crs, res, size, desc=None):
         self.ul = ul
         self.crs = crs
+        self.crs_str = rasterio.crs.to_string(self.crs)
         self.res = res
         self.size = size
         if not rasterio.crs.is_valid_crs(self.crs):
