@@ -1,6 +1,6 @@
 """ SQLite table definitions
 """
-from sqlalchemy import Column, ForeignKey, Integer, Float, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -49,14 +49,28 @@ class Tile(Base):
     __tablename__ = 'tile'
     id = Column(Integer, primary_key=True, autoincrement=True)
     #: TileSpec: Tile specification for this tile
-    tilespec_ref = Column(ForeignKey(TileSpec.id), nullable=False)
+    ref_tilespec_id = Column(ForeignKey(TileSpec.id), nullable=False)
     #: int: Horizontal index of tile in tile specification
-    horizontal = Column(Integer, index=True)
+    horizontal = Column(Integer)
     #: int: Vertical index of tile in tile specification
-    vertical = Column(Integer, index=True)
+    vertical = Column(Integer)
+    #: str: Concatenation of horizontal and vertical indices
+    hv = Column(String, index=True, unique=True)
 
-    # Reference to products stored within this tile
-    products = relationship('Product', backref='ref_tile')
+    # Reference to product collections stored within this tile
+    collections = relationship('Collection', backref='ref_tile')
+    # products = relationship('Product', backref='ref_tile')
+
+
+class Collection(Base):
+    """ Collection of products
+    """
+    __tablename__ = 'collection'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ref_tile_id = Column(ForeignKey(Tile.id), nullable=False)
+    name = Column(String, nullable=False)
+
+    products = relationship('Product', backref='ref_collection_id')
 
 
 class Product(Base):
@@ -64,23 +78,16 @@ class Product(Base):
     """
     __tablename__ = 'product'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    tile_id = Column(ForeignKey(Tile.id), nullable=False)
-    name = Column(String, index=True)
-    desc = Column(String)
+    ref_collection_id = Column(ForeignKey(Collection.id), nullable=False)
+    name = Column(String, index=True, nullable=False)
+    desc = Column(String, nullable=False)
+    platform = Column(String, nullable=False)
+    instrument = Column(String, nullable=False)
+    acquired = Column(DateTime, nullable=False)
+    processed = Column(DateTime, nullable=False)
 
     # Reference to individual band observations
 
 
-if __name__ == '__main__':
-    from tilezilla import tilespec, products, stores
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    engine = create_engine('sqlite:///:memory:', echo=True)
-    Base.metadata.create_all(engine)
-    session = sessionmaker(bind=engine)()
-
-    weld_conus = tilespec.TILESPECS['WELD_CONUS']
-    ts = TileSpec.from_class(weld_conus)
-    prod = products.ESPALandsat('tests/data/LT50120312002300-SC20151009172149_EPGS5070/')
-    
-    from IPython.core.debugger import Pdb; Pdb().set_trace()
+class Variable():
+    pass
