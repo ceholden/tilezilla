@@ -25,6 +25,8 @@ class Band(object):
             of the variable
         long_name (str): a descriptive, but not standardized, description of
             the variable
+        friendly_name (str): a cross-sensor friendly name to refer to (e.g.,
+            'blue' instead of band1)
         units (str): unit of variable
         fill (int or float): fill value for NoData or NaN
         valid_min (int or float): smallest valid value of band data
@@ -34,13 +36,14 @@ class Band(object):
 
     """
     def __init__(self, path, bidx=1,
-                 standard_name='', long_name='',
+                 standard_name='', long_name='', friendly_name='',
                  units='', fill=np.nan,
                  valid_min=None, valid_max=None, scale_factor=1):
         self.path = path
         self.bidx = bidx
         self.standard_name = standard_name
         self.long_name = long_name
+        self.friendly_name = friendly_name
         self.units = units
         self.fill = fill
         self.valid_min = valid_min
