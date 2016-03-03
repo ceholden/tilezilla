@@ -12,7 +12,7 @@ import six
 
 from . import cliutils, options
 from .. import products, tilespec
-from .._util import decompress_to, multiple_filter
+from .._util import decompress_to, include_bands
 from ..geoutils import reproject_as_needed
 from ..stores import GeoTIFFStore
 
@@ -74,24 +74,3 @@ def ingest(ctx, sources, tilespec_str, path):
                         for md_name, md_file in six.iteritems(
                                 product.metadata_files):
                             store.store_file(str(md_file))
-
-
-def include_bands(bands, include, regex=False):
-    """ Include subset of ``bands`` based on ``include``
-
-    Args:
-        bands (list[Band]): Bands to filter
-        include (dict): Dictionary of 'attribute':['pattern',] used to filter
-            input bands for inclusion
-        regex (bool): True if patterns in ``include`` are sets of regular
-            expressions
-
-    Returns:
-        list[Band]: Included bands
-    """
-    out = []
-    for attr in include:
-        attrs = OrderedDict(((getattr(b, attr), b) for b in bands))
-        match = multiple_filter(attrs.keys(), include[attr], regex=regex)
-        out.extend([attrs[k] for k in match])
-    return sorted(set(out), key=lambda item: out.index(item))
