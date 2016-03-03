@@ -75,8 +75,8 @@ class ESPALandsat(BaseProduct):
         {band_names}
         """.format(
             scene_id=self.timeseries_id,
-            acquired=self.acquisition_datetime,
-            processed=self.processed_datetime,
+            acquired=self.acquired.datetime,
+            processed=self.processed.datetime,
             uly=bbox.top,
             ulx=bbox.left,
             lry=bbox.bottom,
@@ -103,7 +103,7 @@ class ESPALandsat(BaseProduct):
         return self.mtl.scene_id
 
     @lazy_property
-    def acquisition_datetime(self):
+    def acquired(self):
         """ Arrow: date and time of acquisition
 
         The time of this acquisition is taken as the scene center time.
@@ -113,7 +113,7 @@ class ESPALandsat(BaseProduct):
         return arrow.get('{}T{}'.format(ad, ct))
 
     @lazy_property
-    def processed_datetime(self):
+    def processed(self):
         """ Arrow: date and time of processing
         """
         return arrow.get(self.xml.find('production_date').text)

@@ -30,8 +30,14 @@ class BaseProduct(object):
         return
 
     @abc.abstractproperty
-    def time(self):
+    def acquired(self):
         """ Arrow: date and time of acquisition
+        """
+        return
+
+    @abc.abstractproperty
+    def processed(self):
+        """ Arrow: date and time of processing
         """
         return
 
