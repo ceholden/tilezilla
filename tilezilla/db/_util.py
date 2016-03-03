@@ -17,7 +17,7 @@ def get_or_add(db, model, defaults=None, **kwargs):
         tuple[model, bool]: Return instance of `model` and boolean indicating
             if the instance was added to the database.
     """
-    instance = db.query(model).filter_by(**kwargs).first()
+    instance = db.session.query(model).filter_by(**kwargs).first()
     if instance:
         return instance, False
     else:
