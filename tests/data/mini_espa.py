@@ -51,8 +51,11 @@ def temp_file():
               show_default=True, help="x/y size")
 @click.option('--pattern', type=str, default='L*.tif', show_default=True,
               help='Image search pattern')
+@click.option('--ignore_pattern', type=str, multiple=True,
+              help='Ignore pattern(s)')
 @click.option('--dst-crs', type=str, help='Target coordinate system')
-def miniaturize(source, destination, offset, size, pattern, dst_crs):
+def miniaturize(source, destination, offset, size,
+                pattern, ignore_pattern, dst_crs):
     """ Miniaturize an ESPA download
     """
     ox, oy = offset
@@ -69,10 +72,13 @@ def miniaturize(source, destination, offset, size, pattern, dst_crs):
     source_id = os.path.basename(source).split(os.extsep, 1)[0]
 
     with temp_expand(source) as source:
+        ignore = []
+        for _ignore_pattern in ignore_pattern:
+            ignore.extend(fnmatch.filter(os.listdir(source), _ignore_pattern))
         sources = sorted([os.path.join(source, f) for f in
                           fnmatch.filter(os.listdir(source), pattern)])
-        ancillary = set([os.path.join(source, f) for f in
-                         os.listdir(source)]).difference(sources)
+        ancillary = set([os.path.join(source, f) for f in os.listdir(source)
+                         if f not in ignore]).difference(sources)
         if not sources:
             raise click.ClickException('Cannot find any files in {}'
                                        .format(source))
