@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
-class TileSpec(Base):
+class TableTileSpec(Base):
     """ SQL representation of :class:`tilespec.TileSpec`
     """
     __tablename__ = 'tilespec'
@@ -30,7 +30,7 @@ class TileSpec(Base):
     size_y = Column(Integer, nullable=False)
 
     # Reference to tiles using this tile specification
-    collections = relationship('Collection', backref='ref_tilespec')
+    collections = relationship('TableCollection', backref='ref_tilespec')
 
     @classmethod
     def from_class(cls, obj):
@@ -43,41 +43,42 @@ class TileSpec(Base):
         )
 
 
-class Collection(Base):
+class TableCollection(Base):
     """ Collection of tiled products
     """
     __tablename__ = 'collection'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ref_tilespec_id = Column(ForeignKey(TileSpec.id), nullable=False)
+    ref_tilespec_id = Column(ForeignKey(TableTileSpec.id), nullable=False)
     name = Column(String, nullable=False)
+    storage = Column(String, nullable=False)
 
-    tiles = relationship('Tile', backref='ref_collection')
+    tiles = relationship('TableTile', backref='ref_collection')
 
 
-class Tile(Base):
+class TableTile(Base):
     """ SQL representation of :class:`tilespec.Tile`
     """
     __tablename__ = 'tile'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ref_collection_id = Column(ForeignKey(Collection.id), nullable=False)
+    ref_collection_id = Column(ForeignKey(TableCollection.id), nullable=False)
     #: int: Horizontal index of tile in tile specification
     horizontal = Column(Integer)
     #: int: Vertical index of tile in tile specification
     vertical = Column(Integer)
     #: str: Concatenation of horizontal and vertical indices
     hv = Column(String, index=True, unique=True)
-
     # Reference to product collections stored within this tile
-    products = relationship('Product', backref='ref_tile')
+    products = relationship('TableProduct', backref='ref_tile')
 
 
-class Product(Base):
+class TableProduct(Base):
     """ SQL representation of dataset products
     """
     __tablename__ = 'product'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ref_collection_id = Column(ForeignKey(Collection.id), nullable=False)
-    ref_tile_id = Column(ForeignKey(Tile.id), nullable=False)
+    ref_collection_id = Column(ForeignKey(TableCollection.id), 
+                               nullable=False)
+    ref_tile_id = Column(ForeignKey(TableTile.id), nullable=False)
     name = Column(String, index=True, nullable=False)
     platform = Column(String, nullable=False)
     instrument = Column(String, nullable=False)
@@ -85,13 +86,13 @@ class Product(Base):
     processed = Column(DateTime, nullable=False)
 
     # Reference to individual band observations
-    bands = relationship('Band', backref='ref_product')
+    bands = relationship('TableBand', backref='ref_product')
 
 
-class Band(Base):
+class TableBand(Base):
     __tablename__ = 'band'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ref_product_id = Column(ForeignKey(Product.id), nullable=False)
+    ref_product_id = Column(ForeignKey(TableProduct.id), nullable=False)
     path = Column(String, nullable=False)
     bidx = Column(Integer, nullable=False)
     standard_name = Column(String, nullable=False)
