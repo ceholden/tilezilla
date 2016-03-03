@@ -11,7 +11,7 @@ from rasterio import crs as rio_crs, warp as rio_warp
 from .core import BaseProduct
 from .._util import find_in_path, lazy_property
 from ..core import Band, BoundingBox
-from ..sensors.landsat import MTL
+from ..sensors.landsat import description_to_friendly_name, MTL
 
 
 class ESPALandsat(BaseProduct):
@@ -183,6 +183,10 @@ class ESPALandsat(BaseProduct):
         # Names
         standard_name = xml.get('name')
         long_name = xml.find('long_name').text
+        friendly_name = description_to_friendly_name(
+            self.timeseries_id[0:2], standard_name) or standard_name
+
+        # Units
         units = xml.find('data_units').text
         # Filename path
         path = str(self.xml_file.parent.joinpath(xml.find('file_name').text))
@@ -199,5 +203,6 @@ class ESPALandsat(BaseProduct):
 
         return Band(path, 1,
                     standard_name=standard_name, long_name=long_name,
+                    friendly_name=friendly_name,
                     units=units, fill=fill,
                     valid_min=_min, valid_max=_max, scale_factor=scale_factor)
