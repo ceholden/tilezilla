@@ -5,6 +5,8 @@ from collections import namedtuple
 import numpy as np
 import rasterio
 
+from ._util import lazy_property
+
 #: easy access container for a bounding box
 BoundingBox = namedtuple('BoundingBox', ('left', 'bottom', 'right', 'top'))
 
@@ -50,15 +52,26 @@ class Band(object):
         self.valid_max = valid_max
         self.scale_factor = scale_factor
 
+    @lazy_property
+    def src(self):
+        """ rasterio._io.RasterReader: the Band dataset opened with rasterio
+        """
         with rasterio.drivers():
-            #: the GDAL dataset opened with rasterio
-            self.src = rasterio.open(path)
-            #: the GDAL band from ``self.src`` opened with rasterio
-            self.band = rasterio.band(self.src, bidx)
+            src = rasterio.open(self.path)
 
+        return src
+
+    @lazy_property
+    def band(self):
+        """ rasterio.Band: The band from ``self.src`` opened with rasterio
+        """
+        band = rasterio.band(self.src, self.bidx)
+        # TODO: remove?
         # Update min/max values if left None
-        info = np.iinfo if self.band.dtype[0] in ('u', 'i') else np.finfo
+        info = np.iinfo if band.dtype[0] in ('u', 'i') else np.finfo
         if self.valid_min is None:
-            self.valid_min = info(np.dtype(self.band.dtype)).min
+            self.valid_min = info(np.dtype(band.dtype)).min
         if self.valid_max is None:
-            self.valid_max = info(np.dtype(self.band.dtype)).max
+            self.valid_max = info(np.dtype(band.dtype)).max
+
+        return band

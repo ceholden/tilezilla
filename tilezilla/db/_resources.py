@@ -103,6 +103,12 @@ class DatasetResource(object):
         self._db = db
         self._cube = datacube
 
+    def get_product(self, id_):
+        """ Get product by ``id``
+        """
+        # TODO: call "make" to get an object
+        return self._db.session.query(TableProduct).filter_by(id=id_)
+
     def ensure_product(self, product):
         """ Add a product to index, creating if needed
         """
@@ -129,3 +135,7 @@ class DatasetResource(object):
                                          defaults=defaults, **kwargs)
             _product_ids.append(_product.id)
         return _product_ids
+
+    def _make_product(self, query):
+        # TODO: turn query into Product class instance with bands
+        pass
