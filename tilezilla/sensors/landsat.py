@@ -5,38 +5,15 @@ import re
 
 import six
 
+from . import SENSOR_FRIENDLY_NAMES
 from .._util import lazy_property
 
-_mss = {
-    'blue': 1,
-    'green': 2,
-    'red': 3,
-    'nir': 4
-}
-_tm_etm = {
-    'blue': 1,
-    'green': 2,
-    'red': 3,
-    'nir': 4,
-    'swir1': 5,
-    'swir2': 7,
-    'thermal': 6
-}
-_oli_tirs = {
-    'blue': 2,
-    'green': 3,
-    'red': 4,
-    'nir': 5,
-    'swir1': 6,
-    'swir2': 7,
-    'thermal': 10
-}
 #: dict[sensor=dict[friedly_name=band number]]
 sensor_bands_friendly_name = {
-    'LM': _mss,
-    'LT': _tm_etm,
-    'LE': _tm_etm,
-    'LC': _oli_tirs
+    'LM': SENSOR_FRIENDLY_NAMES['MSS'],
+    'LT': SENSOR_FRIENDLY_NAMES['TM'],
+    'LE': SENSOR_FRIENDLY_NAMES['ETM+'],
+    'LC': SENSOR_FRIENDLY_NAMES['OLI_TIRS']
 }
 
 
