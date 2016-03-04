@@ -1,0 +1,35 @@
+{
+    "MSS": {
+        "blue": 1,
+        "green": 2,
+        "red": 3,
+        "nir": 4
+    },
+    "TM": {
+        "blue": 1,
+        "green": 2,
+        "red": 3,
+        "nir": 4,
+        "swir1": 5,
+        "swir2": 7,
+        "thermal": 6
+    },
+    "ETM+": {
+        "blue": 1,
+        "green": 2,
+        "red": 3,
+        "nir": 4,
+        "swir1": 5,
+        "swir2": 7,
+        "thermal": 6
+    },
+    "OLI_TIRS": {
+        "blue": 2,
+        "green": 3,
+        "red": 4,
+        "nir": 5,
+        "swir1": 6,
+        "swir2": 7,
+        "thermal": 10
+    }
+}
