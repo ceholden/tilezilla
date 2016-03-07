@@ -1,9 +1,11 @@
 """ Logic for adding/editing/getting entries in tables
 """
-from tilezilla.tilespec import TileSpec, Tile
-from tilezilla.db._util import get_or_add
-from tilezilla.db.sqlite.tables import (TableTileSpec, TableCollection,
-                                        TableTile, TableProduct, TableBand)
+from ._util import get_or_add
+from .sqlite.tables import (TableTileSpec, TableCollection,
+                            TableTile, TableProduct, TableBand)
+from ..tilespec import TileSpec, Tile
+from ..geoutils import reproject_bounds
+
 
 
 class DatacubeResource(object):
@@ -111,13 +113,17 @@ class DatasetResource(object):
 
     def ensure_product(self, product):
         """ Add a product to index, creating if needed
+
+        Returns:
+            list[int]: A list of IDs for each product added to a tile
         """
         # Ensure product's collection exists
-        collection_name = product.__class__.__name__
+        collection_name = product.description
         collection_id = self._cube.ensure_collection(collection_name)
 
         _product_ids = []
-        bbox = product.bounding_box(self._cube.tilespec.crs)
+        bbox = reproject_bounds(product.bounds, 'EPSG:4326',
+                                self._cube.tilespec.crs)
         tiles = self._cube.tilespec.bounds_to_tile(bbox)
         for tile in tiles:
             # Ensure tile in database
@@ -135,6 +141,31 @@ class DatasetResource(object):
                                          defaults=defaults, **kwargs)
             _product_ids.append(_product.id)
         return _product_ids
+
+    def ensure_band(self, product_id, band):
+        """ Add a band to index, creating if necessary
+
+        Args:
+            product_id (int): ID of product that band belongs to
+            band (Band): An observation in some band belonging to a product
+
+        Returns:
+            list[int]: A list of IDs for each band added to tile
+        """
+        kwargs = dict(ref_product_id=product_id,
+                      standard_name=band.standard_name)
+        defaults = dict(path=band.path,
+                        bidx=band.bidx,
+                        long_name=band.long_name,
+                        friendly_name=band.friendly_name,
+                        units=band.units,
+                        fill=band.fill,
+                        valid_min=band.valid_min,
+                        valid_max=band.valid_max,
+                        scale_factor=band.scale_factor)
+        _band, added = get_or_add(self._db, TableBand,
+                                  defaults=defaults, **kwargs)
+        return _band.id
 
     def _make_product(self, query):
         # TODO: turn query into Product class instance with bands

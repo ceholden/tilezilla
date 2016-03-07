@@ -76,7 +76,7 @@ class TableProduct(Base):
     """
     __tablename__ = 'product'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ref_collection_id = Column(ForeignKey(TableCollection.id), 
+    ref_collection_id = Column(ForeignKey(TableCollection.id),
                                nullable=False)
     ref_tile_id = Column(ForeignKey(TableTile.id), nullable=False)
     name = Column(String, index=True, nullable=False)
@@ -92,14 +92,15 @@ class TableProduct(Base):
 class TableBand(Base):
     __tablename__ = 'band'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ref_product_id = Column(ForeignKey(TableProduct.id), nullable=False)
+    ref_product_id = Column(ForeignKey(TableProduct.id),
+                            index=True, nullable=False)
     path = Column(String, nullable=False)
     bidx = Column(Integer, nullable=False)
-    standard_name = Column(String, nullable=False)
+    standard_name = Column(String, index=True, nullable=False)
     long_name = Column(String, nullable=False)
     friendly_name = Column(String, nullable=False)
     units = Column(String, nullable=False)
-    fill = Column(Float, nullable=False)
+    fill = Column(Float)  # fill can be None
     valid_min = Column(Float, nullable=False)
     valid_max = Column(Float, nullable=False)
     scale_factor = Column(Float)

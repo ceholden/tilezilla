@@ -66,7 +66,7 @@ class Band(object):
         """ rasterio.Band: The band from ``self.src`` opened with rasterio
         """
         band = rasterio.band(self.src, self.bidx)
-        # TODO: remove?
+
         # Update min/max values if left None
         info = np.iinfo if band.dtype[0] in ('u', 'i') else np.finfo
         if self.valid_min is None:
