@@ -20,13 +20,10 @@ class DatacubeResource(object):
 
 # TileSpec management
     def init(self):
-        defaults = dict(ul_x=self.tilespec.ul[0],
-                        ul_y=self.tilespec.ul[1],
+        defaults = dict(ul=self.tilespec.ul,
                         crs=self.tilespec.crs_str,
-                        res_x=self.tilespec.res[0],
-                        res_y=self.tilespec.res[1],
-                        size_x=self.tilespec.size[0],
-                        size_y=self.tilespec.size[1])
+                        res=self.tilespec.res,
+                        size=self.tilespec.size)
         kwargs = dict(desc=self.tilespec.desc)
         self._tilespec = get_or_add(self._db,
                                     TableTileSpec,

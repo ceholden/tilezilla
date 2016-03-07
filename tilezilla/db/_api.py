@@ -1,7 +1,8 @@
 from tilezilla.db._db import Database
 from tilezilla.db._util import get_or_add
 from tilezilla.db._resources import DatacubeResource, DatasetResource
-from tilezilla.db.sqlite.tables import (TableTile, TableProduct, TableBand)
+from tilezilla.db.sqlite.tables import (
+    TableTileSpec, TableTile, TableProduct, TableBand)
 
 
 if __name__ == '__main__':
