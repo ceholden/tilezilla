@@ -107,6 +107,26 @@ def meta_to_bounds(affine, width, height, **kwargs):
     return BoundingBox(c, f + e * height, c + a * width, f)
 
 
+def reproject_bounds(bounds, src_crs, dst_crs):
+    """ Return bounds reprojected to `dst_crs`
+
+    Args:
+        BoundingBox: Bounding box in `src_crs`
+        src_crs (str or dict): The coordinate reference system, interpretable
+            by rasterio
+        dst_crs (str or dict): The coordinate reference system, interpretable
+            by rasterio
+
+    Returns:
+        BoundingBox: Bounding box in `dst_crs`
+
+    """
+    if not crs.is_same_crs(src_crs, dst_crs):
+        return BoundingBox(*warp.transform_bounds(src_crs, dst_crs, *bounds))
+    else:
+        return bounds
+
+
 # TODO: delete?
 def tile_to_geojson(lon, lat, size=1):
     """ Return a Shapely geometry for a given tile
