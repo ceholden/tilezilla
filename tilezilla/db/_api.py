@@ -5,13 +5,23 @@ from tilezilla.db.sqlite.tables import (
     TableTileSpec, TableTile, TableProduct, TableBand)
 
 
+
 if __name__ == '__main__':
     from tilezilla import tilespec, products, stores, _util
 
     # Create a product
     prod = products.ESPALandsat.from_path('tests/data/LT50120312002300-SC20151009172149_EPSG5070/')
-
     products = [prod]
+
+    # Create/get collection for product
+    include_pattern = {
+        'long_name': ('.*surface reflectance.*',
+                      '.*brightness temperature.*',
+                      '^cfmask_band$')
+    }
+    desired_bands = _util.include_bands(prod.bands,
+                                        include_pattern, regex=True)
+
 
     # Get the database
     db = Database.from_config()
@@ -26,19 +36,12 @@ if __name__ == '__main__':
     collection_name = prod.description
     datacube.ensure_collection(collection_name)
 
-    # Create/get collection for product
-    include_pattern = {
-        'long_name': ('.*surface reflectance.*',
-                      '.*brightness temperature.*',
-                      '^cfmask_band$')
-    }
-    desired_bands = _util.include_bands(prod.bands,
-                                        include_pattern, regex=True)
-
     for product in products:
         product_ids = dataset.ensure_product(product)
         for product_id in product_ids:
-            for band in product.bands:
+            for band in _util.include_bands(product.bands,
+                                            include_pattern, regex=True):
                 dataset.ensure_band(product_id, band)
 
+    _prod = dataset.get_product(1)
     from IPython.core.debugger import Pdb; Pdb().set_trace()

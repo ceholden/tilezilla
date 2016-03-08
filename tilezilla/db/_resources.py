@@ -5,7 +5,8 @@ from .sqlite.tables import (TableTileSpec, TableCollection,
                             TableTile, TableProduct, TableBand)
 from ..tilespec import TileSpec, Tile
 from ..geoutils import reproject_bounds
-
+from ..core import Band, BoundingBox
+from ..products import registry as product_registry
 
 
 class DatacubeResource(object):
