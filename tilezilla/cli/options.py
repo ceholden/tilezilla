@@ -74,13 +74,6 @@ arg_sources = click.argument(
     type=click.Path(readable=True, resolve_path=True, dir_okay=False))
 
 # OPTIONS
-opt_tilespec_str = click.option(
-    'tilespec_str',
-    '--tilespec',
-    type=click.Choice(tilespec.TILESPECS.keys()),
-    help='Tile specification'
-)
-
 opt_creation_options = click.option(
     '--co',
     'creation_options',

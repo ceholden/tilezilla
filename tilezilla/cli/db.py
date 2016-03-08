@@ -8,7 +8,7 @@ from ..db import TABLES
 opt_db_table = click.argument('table', type=click.Choice(TABLES.keys()))
 
 
-@click.group(help='test')
+@click.group(help='Database information and queries')
 @click.pass_context
 def db(ctx):
     pass

@@ -13,7 +13,7 @@ import six
 from . import cliutils, options
 from .. import products, tilespec
 from .._util import decompress_to, include_bands
-from ..geoutils import reproject_as_needed
+from ..geoutils import reproject_as_needed, reproject_bounds
 from ..stores import GeoTIFFStore
 
 logger = logging.getLogger('tilezilla')
@@ -22,14 +22,9 @@ echoer = cliutils.Echoer(message_indent=0)
 
 @click.command(short_help='Ingest known products into tile dataset format')
 @options.arg_sources
-@options.opt_tilespec_str
-@click.option('--path', envvar='TILEDIR',
-              default='/tmp/tilezilla',
-              type=click.Path(file_okay=False, writable=True,
-                              resolve_path=True),
-              help='DEBUG: Put storage here')
 @click.pass_context
-def ingest(ctx, sources, tilespec_str, path):
+def ingest(ctx, sources):
+    from IPython.core.debugger import Pdb; Pdb().set_trace()
     # TODO: add --tilespec-defn (a JSON/YAML config file with tile params)
     # TODO: add --tilespec-[attrs] where [attrs] are tilespec attributes
     if not tilespec_str:
@@ -55,9 +50,8 @@ def ingest(ctx, sources, tilespec_str, path):
 
             # TODO: get bounding_box and reproject to tilespec.crs
             # TODO: next, get tiles before doing anything to bands
-            bbox = product.bounding_box(spec.crs)
+            bbox = reproject_bounds(product.bounds, 'EPSG:4326', spec.crs)
             tiles = spec.bounds_to_tile(bbox)
-            from IPython.core.debugger import Pdb; Pdb().set_trace()
 
             desired_bands = include_bands(product.bands, include_filter)
             for band in desired_bands:
@@ -65,7 +59,7 @@ def ingest(ctx, sources, tilespec_str, path):
                 with reproject_as_needed(band.src, spec) as src:
                     band.src = src
                     band.band = rasterio.band(src, 1)
-                    for tile in spec.bounds_to_tile(src.bounds):
+                    for tile in tiles:
                         tile_path = tile.str_format(tile_root)
                         echoer.item('Saving to: {}'.format(tile_path))
 

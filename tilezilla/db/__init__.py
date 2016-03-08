@@ -16,6 +16,8 @@ TODO:
 """
 from .sqlite.tables import (TableTileSpec, TableCollection,
                                 TableTile, TableProduct, TableBand)
+from ._db import Database
+from ._resources import DatacubeResource, DatasetResource
 
 TABLES = {
     'tilespec': TableTileSpec,
@@ -24,3 +26,7 @@ TABLES = {
     'product': TableProduct,
     'band': TableBand
 }
+
+__all__ = [
+    'Database'
+]

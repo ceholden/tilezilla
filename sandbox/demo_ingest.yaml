@@ -2,6 +2,10 @@
 version: 0.1.0
 path: /home/ceholden/tiles
 
+database:
+    driver: sqlite
+    uri: tilezilla.db
+
 # Tile specification
 tilespec: WELD_CONUS
 # tilespec:
@@ -20,7 +24,7 @@ store:
     # ...
 
 # Products
-ESPA_Landsat:
+ESPALandsat:
     include_filter:
         regex: False
         # Attributes of each product band to include
@@ -28,26 +32,3 @@ ESPA_Landsat:
             - '*surface reflectance*'
             - '*brightness temperature*'
             - '*cfmask_band*'
-    # TODO: meh
-    sensor_name_mapping:
-        - TM:
-            - blue: 1
-            - green: 2
-            - red: 3
-            - nir: 4
-            - swir1: 5
-            - swir2: 7
-        - ETM+:
-            - blue: 1
-            - green: 2
-            - red: 3
-            - nir: 4
-            - swir1: 5
-            - swir2: 7
-        - OLI:
-            - blue: 2
-            - green: 3
-            - red: 4
-            - nir: 5
-            - swir1: 6
-            - swir2: 7
