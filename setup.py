@@ -27,6 +27,7 @@ entry_points = '''
     ingest=tilezilla.cli.ingest:ingest
     spew=tilezilla.cli.spew:spew
     shapes=tilezilla.cli.info:shapes
+    db=tilezilla.cli.db:db
 '''
 
 setup(
