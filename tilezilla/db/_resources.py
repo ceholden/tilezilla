@@ -83,10 +83,16 @@ class DatacubeResource(object):
 
     def ensure_tile(self, collection_name, horizontal, vertical):
         collection_id = self.ensure_collection(collection_name)
-        defaults = dict(ref_collection_id=collection_id)
-        kwargs = dict(horizontal=horizontal,
-                      vertical=vertical,
-                      hv='h{}v{}'.format(horizontal, vertical))
+        defaults = dict(
+            ref_collection_id=collection_id,
+            bounds=self.tilespec[(vertical, horizontal)].bounds
+        )
+        kwargs = dict(
+            horizontal=horizontal,
+            vertical=vertical,
+            hv='h{}v{}'.format(horizontal, vertical),
+
+        )
         tile, added = get_or_add(self._db, TableTile,
                                  defaults=defaults, **kwargs)
         return tile.id
@@ -107,7 +113,8 @@ class DatasetResource(object):
         """ Get product by ``id``
         """
         # TODO: call "make" to get an object
-        return self._db.session.query(TableProduct).filter_by(id=id_)
+        _product = self._db.session.query(TableProduct).filter_by(id=id_).first()
+        return self._make_product(_product)
 
     def ensure_product(self, product):
         """ Add a product to index, creating if needed
@@ -116,8 +123,7 @@ class DatasetResource(object):
             list[int]: A list of IDs for each product added to a tile
         """
         # Ensure product's collection exists
-        collection_name = product.description
-        collection_id = self._cube.ensure_collection(collection_name)
+        collection_id = self._cube.ensure_collection(product.description)
 
         _product_ids = []
         bbox = reproject_bounds(product.bounds, 'EPSG:4326',
@@ -125,20 +131,41 @@ class DatasetResource(object):
         tiles = self._cube.tilespec.bounds_to_tile(bbox)
         for tile in tiles:
             # Ensure tile in database
-            tile_id = self._cube.ensure_tile(collection_name,
+            tile_id = self._cube.ensure_tile(product.description,
                                              tile.horizontal, tile.vertical)
             # Add product
-            defaults = dict(platform=product.platform,
-                            instrument=product.instrument,
-                            processed=product.processed.datetime)
-            kwargs = dict(name=product.timeseries_id,
-                          ref_collection_id=collection_id,
-                          ref_tile_id=tile_id,
-                          acquired=product.acquired.datetime)
+            defaults = dict(
+                platform=product.platform,
+                instrument=product.instrument,
+                processed=product.processed.datetime,
+                metadata_=getattr(product, 'metadata', {}),
+                metadata_files_=getattr(product, 'metadata_files', {})
+            )
+            kwargs = dict(
+                timeseries_id=product.timeseries_id,
+                ref_collection_id=collection_id,
+                ref_tile_id=tile_id,
+                acquired=product.acquired.datetime
+            )
             _product, added = get_or_add(self._db, TableProduct,
                                          defaults=defaults, **kwargs)
             _product_ids.append(_product.id)
         return _product_ids
+
+    def _make_product(self, query):
+        # TODO: turn query into Product class instance with bands
+        product_class = product_registry.products[query.ref_collection.name]
+        bands = [self._make_band(b) for b in query.bands]
+
+        return product_class(
+            timeseries_id=query.timeseries_id,
+            acquired=query.acquired,
+            processed=query.processed,
+            platform=query.platform,
+            instrument=query.instrument,
+            bounds=BoundingBox(*query.ref_tile.bounds),
+            bands=bands
+        )
 
     def ensure_band(self, product_id, band):
         """ Add a band to index, creating if necessary
@@ -165,6 +192,16 @@ class DatasetResource(object):
                                   defaults=defaults, **kwargs)
         return _band.id
 
-    def _make_product(self, query):
-        # TODO: turn query into Product class instance with bands
-        pass
+    def _make_band(self, query):
+        return Band(
+            path=query.path,
+            bidx=query.bidx,
+            standard_name=query.standard_name,
+            long_name=query.long_name,
+            friendly_name=query.friendly_name,
+            units=query.units,
+            fill=query.fill,
+            valid_min=query.valid_min,
+            valid_max=query.valid_max,
+            scale_factor=query.scale_factor
+        )
