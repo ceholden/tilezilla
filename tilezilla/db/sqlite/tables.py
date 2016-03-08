@@ -39,6 +39,7 @@ class TableCollection(Base):
     storage = sa.Column(sa.String, nullable=False)
 
     tiles = sa.orm.relationship('TableTile', backref='ref_collection')
+    products = sa.orm.relationship('TableProduct', backref='ref_collection')
 
 
 class TableTile(Base):
@@ -55,6 +56,8 @@ class TableTile(Base):
     vertical = sa.Column(sa.Integer)
     #: str: Concatenation of horizontal and vertical indices
     hv = sa.Column(sa.String, index=True, unique=True)
+    #: BoundingBox: Bounds of tile in EPSG:4326
+    bounds = sa.Column(sau.ScalarListType(float), nullable=False)
     # Reference to product collections stored within this tile
     products = sa.orm.relationship('TableProduct', backref='ref_tile')
 
@@ -64,15 +67,18 @@ class TableProduct(Base):
     """
     __tablename__ = 'product'
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    ref_tile_id = sa.Column(sa.ForeignKey(TableTile.id), nullable=False)
     ref_collection_id = sa.Column(
         sa.ForeignKey(TableCollection.id),
         nullable=False)
-    ref_tile_id = sa.Column(sa.ForeignKey(TableTile.id), nullable=False)
-    name = sa.Column(sa.String, index=True, nullable=False)
+    timeseries_id = sa.Column(sa.String, index=True, nullable=False)
     platform = sa.Column(sa.String, nullable=False)
     instrument = sa.Column(sa.String, nullable=False)
-    acquired = sa.Column(sa.DateTime, nullable=False, index=True)
-    processed = sa.Column(sa.DateTime, nullable=False)
+    acquired = sa.Column(sau.ArrowType, nullable=False, index=True)
+    processed = sa.Column(sau.ArrowType, nullable=False)
+
+    metadata_ = sa.Column(sau.JSONType, default={})
+    metadata_files_ = sa.Column(sau.JSONType, default={})
 
     # Reference to individual band observations
     bands = sa.orm.relationship('TableBand', backref='ref_product')
