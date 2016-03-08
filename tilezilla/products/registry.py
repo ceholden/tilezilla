@@ -16,7 +16,7 @@ from .espa import ESPALandsat
 logger = logging.getLogger('tilezilla')
 
 PRODUCTS = [
-    ('ESPALandsat', ESPALandsat)
+    (ESPALandsat.description, ESPALandsat)
 ]
 
 

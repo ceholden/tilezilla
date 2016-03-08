@@ -15,17 +15,16 @@ class ESPALandsat(BaseProduct):
     mtl_pattern = 'L*_MTL.txt'
 
     description = 'ESPALandsat'
+
     path, timeseries_id, platform, instrument = '', '', '', ''
     acquired, processed = None, None
     bounds = BoundingBox(0, 0, 0, 0)
     bands = []
     metadata, metadata_files = {}, {}
 
-    def __init__(self, path, description,
-                 timeseries_id, acquired, processed, platform, instrument,
-                 bounds, bands=None, metadata=None, metadata_files=None):
-        self.path = pathlib.Path(str(path)).resolve()
-        self.description = description
+    def __init__(self, timeseries_id,
+                 acquired, processed, platform, instrument, bounds,
+                 bands=None, metadata=None, metadata_files=None):
         self.timeseries_id = timeseries_id
         self.acquired = acquired
         self.processed = processed
@@ -69,7 +68,6 @@ class ESPALandsat(BaseProduct):
         xml = ESPAMetadata.from_file(md_files['ESPAMetadata'])
 
         return cls(
-            path, cls.description,
             timeseries_id=mtl.scene_id,
             acquired=xml.acquired, processed=xml.processed,
             platform=xml.platform, instrument=xml.instrument,

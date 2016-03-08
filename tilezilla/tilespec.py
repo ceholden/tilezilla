@@ -148,7 +148,7 @@ class Tile(object):
 
     @property
     def affine(self):
-        """ The ``Affine`` transform for the tile
+        """ affine.Affine: The ``Affine`` transform for the tile
         """
         return affine.Affine(self.tilespec.res[0], 0, self.bounds.left,
                              0, -self.tilespec.res[1], self.bounds.top)
