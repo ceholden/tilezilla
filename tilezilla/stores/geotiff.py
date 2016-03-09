@@ -7,6 +7,7 @@ import numpy as np
 import rasterio
 
 from .._util import mkdir_p
+from ..errors import FillValueException
 from ..geoutils import meta_to_bounds
 
 
@@ -82,8 +83,8 @@ class GeoTIFFStore(object):
         src_window = band.src.window(*dst_bounds, boundless=True)
 
         src_data = band.src.read(1, window=src_window, boundless=True)
-        if np.all(src_data == band.fill_value):
-            return
+        if np.all(src_data == band.fill):
+            raise FillValueException
 
         dst_path = self._band_filename(band)
 
