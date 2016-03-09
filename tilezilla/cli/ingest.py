@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-""" Process an image or compressed tarball of images to tiles
+""" CLI to process imagery products to tiles and index in database
 """
-from collections import OrderedDict
-import fnmatch
 import logging
 import os
 
@@ -11,60 +9,84 @@ import rasterio
 import six
 
 from . import cliutils, options
-from .. import products, tilespec
+from .. import products
 from .._util import decompress_to, include_bands
+from ..db import Database, DatacubeResource, DatasetResource
+from ..errors import FillValueException
 from ..geoutils import reproject_as_needed, reproject_bounds
-from ..stores import GeoTIFFStore
+from ..stores import STORAGE_TYPES
 
 logger = logging.getLogger('tilezilla')
 echoer = cliutils.Echoer(message_indent=0)
+
+
+def ingest_source(config, source):
+    """ Ingest (tile and ingest) a source
+    """
+    spec = config['tilespec']
+    store_name = config['store']['name']
+    db = Database.from_config(config['database'])
+    datacube = DatacubeResource(db, spec, store_name)
+    dataset = DatasetResource(db, datacube)
+
+    # TODO: config file should describe the basename of tile directories
+    # TODO: document choice of where these variables come from (Tile)
+    # TODO: parametrize zfill
+    tile_root = os.path.join(
+        config['store']['root'], config['store']['tile_dirpattern'])
+
+    product_filter = config.get('products', {}).get('include_filter', {})
+    include_regex = product_filter.pop('regex', False)
+    include_filter = product_filter.copy()
+
+    with decompress_to(source) as tmpdir:
+        # Find product & select bands
+        product = products.registry.sniff_product_type(tmpdir)
+        desired_bands = include_bands(
+            product.bands, include_filter, regex=include_regex
+        )
+
+        # TODO: get bounding_box and reproject to tilespec.crs
+        # TODO: next, get tiles before doing anything to bands
+        bbox = reproject_bounds(product.bounds, 'EPSG:4326', spec.crs)
+        tiles = list(spec.bounds_to_tile(bbox))
+
+        for band in desired_bands:
+            with reproject_as_needed(band.src, spec) as src:
+                band.src = src
+                echoer.item('Tiling: {}'.format(band.long_name))
+                for tile in tiles:
+                    # Setup dataset store
+                    path = tile.str_format(tile_root)
+                    store = STORAGE_TYPES[store_name](path, tile, product)
+                    # Save and record path
+                    try:
+                        dst_path = store.store_variable(band)
+                    except FillValueException:
+                        # TODO: skip tile but complain
+                        continue
+                    band.path = dst_path
+                    # TODO: delete echo
+                    echoer.item('    saved to: {}'.format(dst_path))
+
+                    # Index tile and product
+                    tile_id = datacube.ensure_tile(product.description,
+                                                   tile.horizontal,
+                                                   tile.vertical)
+                    product_id = dataset.ensure_product(tile_id, product)
+                    # Index
+                    dataset.ensure_band(product_id, band)
+                    # TODO: delete if index went bad
+
+                    # Copy over metadata files
+                    for md_name in product.metadata_files:
+                        store.store_file(str(product.metadata_files[md_name]))
 
 
 @click.command(short_help='Ingest known products into tile dataset format')
 @options.arg_sources
 @click.pass_context
 def ingest(ctx, sources):
-    from IPython.core.debugger import Pdb; Pdb().set_trace()
-    # TODO: add --tilespec-defn (a JSON/YAML config file with tile params)
-    # TODO: add --tilespec-[attrs] where [attrs] are tilespec attributes
-    if not tilespec_str:
-        raise click.UsageError('Must specify a tile specification to use')
-
-    # TODO: user input for bands to save
-    include_filter = {
-        'long_name': ['*surface reflectance*', '*cfmask*']
-    }
-
-    # TODO: config file should describe the basename of tile directories
-    # TODO: document choice of where these variables come from (Tile)
-    # TODO: parametrize zfill
-    tile_root = os.path.join(path, 'h{horizontal:04d}v{vertical:04d}')
-
-    spec = tilespec.TILESPECS[tilespec_str]
-
     for source in sources:
         echoer.info('Working on: {}'.format(source))
-
-        with decompress_to(source) as tmpdir:
-            product = products.registry.sniff_product_type(tmpdir)
-
-            # TODO: get bounding_box and reproject to tilespec.crs
-            # TODO: next, get tiles before doing anything to bands
-            bbox = reproject_bounds(product.bounds, 'EPSG:4326', spec.crs)
-            tiles = spec.bounds_to_tile(bbox)
-
-            desired_bands = include_bands(product.bands, include_filter)
-            for band in desired_bands:
-                echoer.process('Tiling: {}'.format(band.long_name))
-                with reproject_as_needed(band.src, spec) as src:
-                    band.src = src
-                    band.band = rasterio.band(src, 1)
-                    for tile in tiles:
-                        tile_path = tile.str_format(tile_root)
-                        echoer.item('Saving to: {}'.format(tile_path))
-
-                        store = GeoTIFFStore(tile_path, tile, product)
-                        store.store_variable(band, overwrite=True)
-                        for md_name, md_file in six.iteritems(
-                                product.metadata_files):
-                            store.store_file(str(md_file))
+        ingest_source(ctx.obj['config'], source)
