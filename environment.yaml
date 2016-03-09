@@ -1,14 +1,15 @@
-# Conda environment file for tilezilla
-# Includes optional dependencies since conda makes installing them pretty easy
+# conda environment file for tilezilla
 name: tilezilla
 channels:
+    # they nicely build rasterio for us
     - ioos
 dependencies:
     # base
     - numpy>=1.10.0
     # geographic data packages
+    - rasterio>=0.31.0
     - gdal
-    # - rasterio>=0.31.0
+    - libgdal
     - shapely>=1.5.13
     # database
     - sqlalchemy
@@ -25,7 +26,9 @@ dependencies:
         # cli
         - click>=6.0
         - click_plugins>=1.0
-        # Compatibility with Python2
+        # database utils
+        - sqlalchemy-utils
+        # compatibility with Python2
         - pathlib>=1.0.1
         - six==1.10.0
         # TODO: remove temp workaround for missing libcom_err.so
