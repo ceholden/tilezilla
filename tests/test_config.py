@@ -1,6 +1,6 @@
 import os
 
-from tilezilla import config_parser
+from tilezilla import config
 
 
 # ENVIRONMENT VARIABLE PARSING
@@ -29,7 +29,7 @@ def test_get_envvars():
     for k in envvars:
         os.environ[k] = envvars[k]
 
-    expanded = config_parser.expand_envvars(d)
+    expanded = config.expand_envvars(d)
     os.environ.update(backup)
 
     assert truth == expanded
