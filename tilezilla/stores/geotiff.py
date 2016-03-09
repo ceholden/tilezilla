@@ -35,6 +35,8 @@ class GeoTIFFStore(object):
         tile (Tile): The dataset tile to store
         product (BaseProduct): A :class:`tilezilla.product.core.BaseProduct`
             to store
+        meta_options (dict): Additional creation options or metadata for
+            `rasterio` driver
 
     """
 
@@ -47,10 +49,11 @@ class GeoTIFFStore(object):
         'compress': 'deflate'
     }
 
-    def __init__(self, path, tile, product):
+    def __init__(self, path, tile, product, meta_options=None):
         self.path = path
         self.tile = tile
         self.product = product
+        self.meta_options.update(meta_options or {})
 
         self.meta_options.update({
             'affine': tile.affine,
