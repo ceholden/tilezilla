@@ -38,12 +38,12 @@ class ProductRegistry(object):
         """
         for name in self._order:
             try:
-                _product = self.products[name](path)
+                _product = self.products[name].from_path(path)
             except Exception as e:
                 logger.debug('{name} could not open {path}: {msg}'
                              .format(name=self.products[name].__name__,
                                      path=path,
                                      msg=str(e)))
             else:
-                self._order.insert(0, self.products.pop(name))
+                self._order.insert(0, name)
                 return _product
