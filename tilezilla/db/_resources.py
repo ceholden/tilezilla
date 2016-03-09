@@ -122,6 +122,8 @@ class DatasetResource(object):
         Returns:
             list[int]: A list of IDs for each product added to a tile
         """
+        collection_id = (self._db.session.query(TableTile)
+                         .filter_by(id=tile_id).first().ref_collection_id)
         # Add product
         defaults = dict(
             platform=product.platform,
