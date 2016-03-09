@@ -37,7 +37,7 @@ class Database(object):
                                          uri=config.get('uri', 'tilezilla.db'))
         return cls.connect(
             uri=uri,
-            debug=config.get('debug', True)
+            debug=config.get('debug', False)
         )
 
     def scope(self):

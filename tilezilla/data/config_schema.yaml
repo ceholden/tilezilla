@@ -30,6 +30,8 @@ definitions:
                 type: string
             uri:
                 type: string
+            debug:
+                type: boolean
         required:
             - driver
             - uri

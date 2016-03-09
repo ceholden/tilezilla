@@ -5,7 +5,7 @@ version: 0.1.0
 database:
     driver: sqlite
     uri: /home/ceholden/tiles/tilezilla.db
-
+    debug: False
 
 # Tile storage method
 store:
