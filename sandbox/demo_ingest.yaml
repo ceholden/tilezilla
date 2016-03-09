@@ -12,6 +12,7 @@ store:
     ## Required
     name: GeoTIFF  # could be NetCDF
     root: /home/ceholden/tiles
+    tile_dirpattern: 'h{horizontal:04d}v{vertical:04d}'
     ## Additional option -- specific (?) to GeoTIFF: creation options
     co:
         tiled: true

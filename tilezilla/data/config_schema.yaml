@@ -63,6 +63,8 @@ definitions:
                     # - NetCDF
             root:
                 type: string
+            tile_dirpattern:
+                type: string
             co:
                 type: object
                 properties:
@@ -74,6 +76,10 @@ definitions:
                         type: integer
                     compress:
                         type: string
+        required:
+            - name
+            - root
+            - tile_dirpattern
     products:
         include_filter:
             type: object

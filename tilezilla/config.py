@@ -8,6 +8,7 @@ import jsonschema
 import six
 import yaml
 
+from .errors import ConfigException
 from .tilespec import TileSpec, TILESPECS
 
 logger = logging.getLogger('tilezilla')
@@ -37,12 +38,21 @@ def parse_config(path):
     jsonschema.validate(cfg, schema_defn)
 
     # Final parsing
+    cfg = _parse_database(cfg)
     cfg = _parse_tilespec(cfg)
 
     return cfg
 
 
 # SECTIONS
+def _parse_database(cfg):
+    # Ensure writeable
+    root = os.path.dirname(cfg['database']['uri'])
+    if not os.access(root, os.W_OK) or not os.path.exists(root):
+        raise ConfigException('Database "uri" root directory does not exist:'
+                              '{}'.format(root))
+    return cfg
+
 def _parse_tilespec(cfg):
     _tilespec = cfg['tilespec']
     if isinstance(_tilespec, str):
