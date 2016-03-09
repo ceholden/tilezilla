@@ -2,11 +2,58 @@
 """
 import logging
 import os
+import pkgutil
 
+import jsonschema
 import six
+import yaml
+
+from .tilespec import TileSpec, TILESPECS
 
 logger = logging.getLogger('tilezilla')
 
+
+# TODO: load schema & validate
+def parse_config(path):
+    """ Parse a configuration file and return it as a dict
+
+    Args:
+        path (str): Location of YAML configuration file
+
+    Returns:
+        dict: Configuration options
+
+    Raises:
+        KeyError: Raise if configuration file is missing required sections or
+            is otherwise malformed
+    """
+    with open(path) as f:
+        cfg = yaml.safe_load(f)
+
+    # Validate
+    schema = pkgutil.get_data('tilezilla', 'data/config_schema.yaml')
+    schema_defn = yaml.load(schema)
+
+    jsonschema.validate(cfg, schema_defn)
+
+    # Final parsing
+    cfg = _parse_tilespec(cfg)
+
+    return cfg
+
+
+# SECTIONS
+def _parse_tilespec(cfg):
+    _tilespec = cfg['tilespec']
+    if isinstance(_tilespec, str):
+        if _tilespec not in TILESPECS:
+            raise KeyError('Unknown tile specification "{}"'
+                           .format(_tilespec))
+        cfg['tilespec'] = TILESPECS[_tilespec]
+    elif isinstance(_tilespec, dict):
+        cfg['tilespec'] = TileSpec(**cfg['tilespec'])
+
+    return cfg
 
 # UTIL
 def _expand_envvars(d):

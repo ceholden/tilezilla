@@ -1,0 +1,99 @@
+# http://json-schema.org/example2.html
+"$schema": "http://json-schema.org/draft-04/schema#"
+description: tilezilla configuration file schema
+type: object
+properties:
+    version:
+        type: string
+        # TODO: pattern:
+    database:
+        "$ref": "#/definitions/database"
+    tilespec:
+        anyOf: [
+            "$ref": "#/definitions/tiles/wellknown",
+            "$ref": "#/definitions/tiles/specified"
+        ]
+    store:
+        "$ref": "#/definitions/stores"
+    products:
+        type: object
+        properties:
+            include_filter:
+                "$ref": "#/definitions/products/include_filter"
+
+
+definitions:
+    database:
+        type: object
+        properties:
+            driver:
+                type: string
+            uri:
+                type: string
+        required:
+            - driver
+            - uri
+        additionalProperties: false
+    tiles:
+        wellknown:
+            type: string
+        specified:
+            type: object
+            properties:
+                crs:
+                    type: string
+                ul:
+                    "$ref": "#/definitions/util/xy_float"
+                res:
+                    "$ref": "#/definitions/util/xy_float"
+                size:
+                    "$ref": "#/definitions/util/xy_int"
+            required:
+                - crs
+                - ul
+                - res
+                - size
+    stores:
+        type: object
+        properties:
+            name:
+                type: string
+                enum:
+                    - GeoTIFF
+                    # - NetCDF
+            root:
+                type: string
+            co:
+                type: object
+                properties:
+                    tiled:
+                        type: boolean
+                    blockxsize:
+                        type: integer
+                    blockysize:
+                        type: integer
+                    compress:
+                        type: string
+    products:
+        include_filter:
+            type: object
+            properties:
+                regex:
+                    type: boolean
+            patternProperties:
+                # long_name, standard_name, etc.
+                (long_name|standard_name|friendly_name):
+                    type: array
+                    items:
+                        type: string
+    util:
+        xy_float:
+            type: array
+            items:
+                type: number
+                type: number
+        xy_int:
+            type: array
+            items:
+                type: integer
+                type: integer
