@@ -61,17 +61,12 @@ class Band(object):
 
         return src
 
-    @lazy_property
+    @src.setter
+    def src(self, _src):
+        self._src = _src
+
+    @property
     def band(self):
         """ rasterio.Band: The band from ``self.src`` opened with rasterio
         """
-        band = rasterio.band(self.src, self.bidx)
-
-        # Update min/max values if left None
-        info = np.iinfo if band.dtype[0] in ('u', 'i') else np.finfo
-        if self.valid_min is None:
-            self.valid_min = info(np.dtype(band.dtype)).min
-        if self.valid_max is None:
-            self.valid_max = info(np.dtype(band.dtype)).max
-
-        return band
+        return rasterio.band(self.src, self.bidx)
