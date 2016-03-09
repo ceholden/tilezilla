@@ -68,6 +68,14 @@ class GeoTIFFStore(object):
 
     def store_variable(self, band, overwrite=False):
         """ Store product contained within this tile
+
+        Args:
+            band (Band): A :class:`Band` containing an observed variable
+            overwrite (bool): Allow overwriting
+
+        Returns:
+            str: The path to the stored variable
+
         """
         # Ensure source data has observations (i.e., not an edge)
         dst_bounds = meta_to_bounds(**self.meta_options)
@@ -83,6 +91,8 @@ class GeoTIFFStore(object):
         dst_meta.update(self.meta_options)
         with rasterio.open(dst_path, 'w', **dst_meta) as dst:
             dst.write_band(1, src_data)
+
+        return dst_path
 
     def retrieve_variable(self, **kwargs):
         """ Retrieve a product stored within this tile

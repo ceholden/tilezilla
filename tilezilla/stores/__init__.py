@@ -2,6 +2,7 @@
 """
 from .geotiff import GeoTIFFStore
 
-__all__ = [
-    'GeoTIFFStore'
-]
+STORAGE_TYPES = {
+    'GeoTIFF': GeoTIFFStore,
+    # TODO: 'NetCDF': NetCDFStore
+}
