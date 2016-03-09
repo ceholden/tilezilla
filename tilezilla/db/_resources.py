@@ -116,41 +116,29 @@ class DatasetResource(object):
         _product = self._db.session.query(TableProduct).filter_by(id=id_).first()
         return self._make_product(_product)
 
-    def ensure_product(self, product):
+    def ensure_product(self, tile_id, product):
         """ Add a product to index, creating if needed
 
         Returns:
             list[int]: A list of IDs for each product added to a tile
         """
-        # Ensure product's collection exists
-        collection_id = self._cube.ensure_collection(product.description)
-
-        _product_ids = []
-        bbox = reproject_bounds(product.bounds, 'EPSG:4326',
-                                self._cube.tilespec.crs)
-        tiles = self._cube.tilespec.bounds_to_tile(bbox)
-        for tile in tiles:
-            # Ensure tile in database
-            tile_id = self._cube.ensure_tile(product.description,
-                                             tile.horizontal, tile.vertical)
-            # Add product
-            defaults = dict(
-                platform=product.platform,
-                instrument=product.instrument,
-                processed=product.processed.datetime,
-                metadata_=getattr(product, 'metadata', {}),
-                metadata_files_=getattr(product, 'metadata_files', {})
-            )
-            kwargs = dict(
-                timeseries_id=product.timeseries_id,
-                ref_collection_id=collection_id,
-                ref_tile_id=tile_id,
-                acquired=product.acquired.datetime
-            )
-            _product, added = get_or_add(self._db, TableProduct,
-                                         defaults=defaults, **kwargs)
-            _product_ids.append(_product.id)
-        return _product_ids
+        # Add product
+        defaults = dict(
+            platform=product.platform,
+            instrument=product.instrument,
+            processed=product.processed.datetime,
+            metadata_=getattr(product, 'metadata', {}),
+            metadata_files_=getattr(product, 'metadata_files', {})
+        )
+        kwargs = dict(
+            timeseries_id=product.timeseries_id,
+            ref_collection_id=collection_id,
+            ref_tile_id=tile_id,
+            acquired=product.acquired.datetime
+        )
+        _product, added = get_or_add(self._db, TableProduct,
+                                     defaults=defaults, **kwargs)
+        return _product.id
 
     def _make_product(self, query):
         # TODO: turn query into Product class instance with bands

@@ -28,5 +28,7 @@ TABLES = {
 }
 
 __all__ = [
-    'Database'
+    'Database',
+    'DatacubeResource',
+    'DatasetResource'
 ]

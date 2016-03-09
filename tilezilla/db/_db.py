@@ -33,8 +33,10 @@ class Database(object):
     @classmethod
     def from_config(cls, config=None):
         config = config or {}
+        uri = '{driver}:///{uri}'.format(driver=config.get('driver'),
+                                         uri=config.get('uri', 'tilezilla.db'))
         return cls.connect(
-            uri=config.get('uri', 'sqlite:///:memory:'),
+            uri=uri,
             debug=config.get('debug', True)
         )
 
