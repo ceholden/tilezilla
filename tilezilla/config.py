@@ -47,11 +47,13 @@ def parse_config(path):
 # SECTIONS
 def _parse_database(cfg):
     # Ensure writeable
-    root = os.path.dirname(cfg['database']['uri'])
+    root = os.path.dirname(cfg['database']['database'])
     if not os.access(root, os.W_OK) or not os.path.exists(root):
-        raise ConfigException('Database "uri" root directory does not exist:'
-                              '{}'.format(root))
+        raise ConfigException(
+            'Database file ("database" in config) root directory '
+            'does not exist: {}'.format(root))
     return cfg
+
 
 def _parse_tilespec(cfg):
     _tilespec = cfg['tilespec']
@@ -64,6 +66,7 @@ def _parse_tilespec(cfg):
         cfg['tilespec'] = TileSpec(**cfg['tilespec'])
 
     return cfg
+
 
 # UTIL
 def _expand_envvars(d):

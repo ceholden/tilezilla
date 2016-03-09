@@ -26,15 +26,23 @@ definitions:
     database:
         type: object
         properties:
-            driver:
+            drivername:
                 type: string
-            uri:
+            database:
+                type: string
+            username:
+                type: string
+            password:
+                type: string
+            host:
+                type: string
+            port:
                 type: string
             debug:
                 type: boolean
         required:
-            - driver
-            - uri
+            - drivername
+            - database
         additionalProperties: false
     tiles:
         wellknown:

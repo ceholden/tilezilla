@@ -124,7 +124,6 @@ class MTL(object):
         Returns:
             MTL: Instance of MTL
         """
-        from IPython.core.debugger import Pdb; Pdb().set_trace()
         return cls(parse_MTL(fid))
 
 

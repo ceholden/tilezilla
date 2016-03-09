@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import sqlalchemy as sa
 
 from .sqlite.tables import Base
 
@@ -24,19 +23,27 @@ class Database(object):
         Returns:
             Database
         """
-        engine = create_engine(uri, echo=debug)
+        engine = sa.create_engine(uri, echo=debug)
         Base.metadata.create_all(engine)
-        session = sessionmaker(bind=engine)()
+        session = sa.orm.sessionmaker(bind=engine)()
 
         return cls(engine, session)
 
     @classmethod
     def from_config(cls, config=None):
+        # http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
         config = config or {}
-        uri = '{driver}:///{uri}'.format(driver=config.get('driver'),
-                                         uri=config.get('uri', 'tilezilla.db'))
+        uri_config = {
+            'drivername': config.get('drivername'),
+            'database': config.get('database'),
+            'username': config.get('username', '') or None,
+            'password': config.get('password', '') or None,
+            'host': config.get('host', '') or None,
+            'port': config.get('port', '') or None
+        }
+
         return cls.connect(
-            uri=uri,
+            uri=sa.engine.url.URL(**uri_config),
             debug=config.get('debug', False)
         )
 

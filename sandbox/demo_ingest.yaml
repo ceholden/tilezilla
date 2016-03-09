@@ -2,9 +2,16 @@
 version: 0.1.0
 
 # Database
+# See connection information at:
+# http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.engine.url.URL
 database:
-    driver: sqlite
-    uri: /home/ceholden/tiles/tilezilla.db
+    drivername: sqlite
+    database: /home/ceholden/tiles/tilezilla.db
+    # Not required, but used with postgresql, etc.
+    # username:
+    # password:
+    # host:
+    # port:
     debug: False
 
 # Tile storage method
