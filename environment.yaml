@@ -15,6 +15,7 @@ dependencies:
     - sqlalchemy
     # config file
     - pyyaml>=3.11
+    - jsonschema>=2.4.0
     # metadata parsing
     - beautifulsoup4
     # plotting
@@ -31,5 +32,3 @@ dependencies:
         # compatibility with Python2
         - pathlib>=1.0.1
         - six==1.10.0
-        # TODO: remove temp workaround for missing libcom_err.so
-        - rasterio>=0.31

@@ -29,7 +29,7 @@ def test_get_envvars():
     for k in envvars:
         os.environ[k] = envvars[k]
 
-    expanded = config.expand_envvars(d)
+    expanded = config._expand_envvars(d)
     os.environ.update(backup)
 
     assert truth == expanded
