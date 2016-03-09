@@ -1,13 +1,29 @@
 # Metadata
 version: 0.1.0
-path: /home/ceholden/tiles
 
+# Database
 database:
     driver: sqlite
-    uri: tilezilla.db
+    uri: /home/ceholden/tiles/tilezilla.db
+
+
+# Tile storage method
+store:
+    ## Required
+    name: GeoTIFF  # could be NetCDF
+    root: /home/ceholden/tiles
+    ## Additional option -- specific (?) to GeoTIFF: creation options
+    co:
+        tiled: true
+        blockxsize: 256
+        blockysize: 256
+        compress: deflate
+
 
 # Tile specification
+## For recognized systems
 tilespec: WELD_CONUS
+## Or manually
 # tilespec:
 #     # Coordinate reference system
 #     crs: EPSG:5070
@@ -18,15 +34,12 @@ tilespec: WELD_CONUS
 #     # Number of pixels (x/y) in each tile
 #     size: 500, 500
 
-# Tile storage method
-store:
-    name: GeoTIFF
-    # ...
 
 # Products
-ESPALandsat:
+products:
+    ## Product handling options
     include_filter:
-        regex: False
+        regex: false
         # Attributes of each product band to include
         long_name:
             - '*surface reflectance*'
