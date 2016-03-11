@@ -11,6 +11,7 @@ dependencies:
     - gdal
     - libgdal
     - shapely>=1.5.13
+    - netcdf4
     # database
     - sqlalchemy
     # config file
@@ -20,6 +21,9 @@ dependencies:
     - beautifulsoup4
     # plotting
     - matplotlib>=1.5.1
+    # Required for "clover" -- see below
+    - pillow
+    - fiona
     # Required but missing from conda
     - pip:
         # better datetime
@@ -32,3 +36,5 @@ dependencies:
         # compatibility with Python2
         - pathlib>=1.0.1
         - six==1.10.0
+        # clover -- used for CRS translation "NetCDF CF" <-> "GDAL/Proj4"
+        - git+git://github.com/consbio/clover.git
