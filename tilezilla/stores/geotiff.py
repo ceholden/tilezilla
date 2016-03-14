@@ -34,8 +34,6 @@ class GeoTIFFStore(object):
         path (str): The root directory where the tile should be stored. The
             path specified should already separate among tiles, if desired.
         tile (Tile): The dataset tile to store
-        product (BaseProduct): A :class:`tilezilla.product.core.BaseProduct`
-            to store
         meta_options (dict): Additional creation options or metadata for
             `rasterio` driver
 
@@ -50,10 +48,9 @@ class GeoTIFFStore(object):
         'compress': 'deflate'
     }
 
-    def __init__(self, path, tile, product, meta_options=None):
+    def __init__(self, path, tile, meta_options=None):
         self.path = path
         self.tile = tile
-        self.product = product
         self.meta_options.update(meta_options or {})
 
         self.meta_options.update({
@@ -63,14 +60,12 @@ class GeoTIFFStore(object):
             'height': tile.tilespec.size[1]
         })
 
-        #: str: The directory prefix (dirname) for this product store
-        self._dirname = os.path.join(self.path, self.product.timeseries_id)
-        mkdir_p(self._dirname)
-
-    def store_variable(self, band, overwrite=False):
-        """ Store product contained within this tile
+    def store_variable(self, product, band, overwrite=False):
+        """ Store product variable contained within this tile
 
         Args:
+            product (BaseProduct): A :class:`tilezilla.product.core.BaseProduct`
+                to store
             band (Band): A :class:`Band` containing an observed variable
             overwrite (bool): Allow overwriting
 
@@ -84,9 +79,11 @@ class GeoTIFFStore(object):
 
         src_data = band.src.read(1, window=src_window, boundless=True)
         if np.all(src_data == band.fill):
-            raise FillValueException
+            raise FillValueException('Variable is 100% fill value')
 
-        dst_path = self._band_filename(band)
+        root = os.path.join(self.path, product.timeseries_id)
+        mkdir_p(root)
+        dst_path = self._band_filename(root, band)
 
         dst_meta = band.src.meta.copy()
         dst_meta.update(self.meta_options)

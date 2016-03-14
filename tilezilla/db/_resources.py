@@ -3,18 +3,20 @@
 from ._util import get_or_add
 from .sqlite.tables import (TableTileSpec, TableCollection,
                             TableTile, TableProduct, TableBand)
-from ..tilespec import TileSpec, Tile
-from ..geoutils import reproject_bounds
 from ..core import Band, BoundingBox
 from ..products import registry as product_registry
 
 
 class DatacubeResource(object):
     """ Tiles of products for a given tile specification
-    """
 
+    Args:
+        db (Database): Database connection
+        tilespec (TileSpec): Tile specification for datacube
+        storage (str): Storage type from :attr:`tilezilla.stores.STORAGE_TYPES`
+    """
     def __init__(self, db, tilespec, storage):
-        self._db = db
+        self.db = db
         self.tilespec = tilespec
         self.storage = storage
         self.init()
@@ -26,30 +28,30 @@ class DatacubeResource(object):
                         res=self.tilespec.res,
                         size=self.tilespec.size)
         kwargs = dict(desc=self.tilespec.desc)
-        self._tilespec = get_or_add(self._db,
-                                    TableTileSpec,
-                                    defaults=defaults,
-                                    **kwargs)[0]
+        self.query_tilespec = get_or_add(self.db,
+                                         TableTileSpec,
+                                         defaults=defaults,
+                                         **kwargs)[0]
 
 # Collection management
     @property
     def collections(self):
-        _collections = (self._db.session.query(TableCollection)
-                        .filter(TableTileSpec.id == self._tilespec.id).all())
+        _collections = (self.db.session.query(TableCollection)
+                        .filter_by(id=self.query_tilespec.id).all())
         if not _collections:
             return _collections
         return [c.name for c in _collections]
 
     def get_collection(self, _id):
-        return (self._db.session.query(TableCollection)
+        return (self.db.session.query(TableCollection)
                 .filter_by(id=_id, storage=self.storage).first())
 
     def get_collection_by_name(self, name):
-        return (self._db.session.query(TableCollection)
+        return (self.db.session.query(TableCollection)
                 .filter_by(name=name, storage=self.storage).first())
 
     def search_collections(self, **kwargs):
-        return self._db.query(TableCollection).filter_by(**kwargs).all()
+        return self.db.query(TableCollection).filter_by(**kwargs).all()
 
     def ensure_collection(self, name):
         """ Return Collection ID by name, creating a new one if needed
@@ -59,23 +61,23 @@ class DatacubeResource(object):
         Returns:
             int: The `id` index of the added collection
         """
-        defaults = dict(ref_tilespec_id=self._tilespec.id,
+        defaults = dict(ref_tilespec_id=self.query_tilespec.id,
                         storage=self.storage)
         kwargs = dict(name=name)
-        collection, added = get_or_add(self._db, TableCollection,
+        collection, added = get_or_add(self.db, TableCollection,
                                        defaults=defaults, **kwargs)
         return collection.id
 
 # Tile management
     def get_tile(self, _id):
-        _tile = (self._db.session.query(TableTile)
+        _tile = (self.db.session.query(TableTile)
                  .filter(TableTile.id == _id).first())
         if not _tile:
             return None
         return self._make_tile(_tile)
 
     def get_tile_by_index(self, horizontal, vertical):
-        _tile = self._db.session.query(TableTile).filter_by(
+        _tile = self.db.session.query(TableTile).filter_by(
             horizontal=horizontal, vertical=vertical).first()
         if not _tile:
             return None
@@ -93,7 +95,7 @@ class DatacubeResource(object):
             hv='h{}v{}'.format(horizontal, vertical),
 
         )
-        tile, added = get_or_add(self._db, TableTile,
+        tile, added = get_or_add(self.db, TableTile,
                                  defaults=defaults, **kwargs)
         return tile.id
 
@@ -106,15 +108,24 @@ class DatasetResource(object):
     """ Individual dataset product observations per collection and tile
     """
     def __init__(self, db, datacube):
-        self._db = db
-        self._cube = datacube
+        self.db = db
+        self.datacube = datacube
 
     def get_product(self, id_):
         """ Get product by ``id``
         """
-        # TODO: call "make" to get an object
-        _product = self._db.session.query(TableProduct).filter_by(id=id_).first()
+        _product = (self.db.session.query(TableProduct)
+                    .filter_by(id=id_).first())
         return self._make_product(_product)
+
+    def get_products_by_name(self, name):
+        """ Get product by ``timeseries_id``
+        """
+        products = []
+        for prod in (self.db.session.query(TableProduct)
+                     .filter_by(timeseries_id=name).all()):
+            products.append(self._make_product(prod))
+        return products
 
     def ensure_product(self, tile_id, product):
         """ Add a product to index, creating if needed
@@ -122,8 +133,9 @@ class DatasetResource(object):
         Returns:
             list[int]: A list of IDs for each product added to a tile
         """
-        collection_id = (self._db.session.query(TableTile)
-                         .filter_by(id=tile_id).first().ref_collection_id)
+        collection_id = (self.db.session.query(TableTile)
+                         .filter_by(id=tile_id)
+                         .first().ref_collection_id)
         # Add product
         defaults = dict(
             platform=product.platform,
@@ -138,12 +150,11 @@ class DatasetResource(object):
             ref_tile_id=tile_id,
             acquired=product.acquired.datetime
         )
-        _product, added = get_or_add(self._db, TableProduct,
+        _product, added = get_or_add(self.db, TableProduct,
                                      defaults=defaults, **kwargs)
         return _product.id
 
     def _make_product(self, query):
-        # TODO: turn query into Product class instance with bands
         product_class = product_registry.products[query.ref_collection.name]
         bands = [self._make_band(b) for b in query.bands]
 
@@ -178,7 +189,7 @@ class DatasetResource(object):
                         valid_min=band.valid_min,
                         valid_max=band.valid_max,
                         scale_factor=band.scale_factor)
-        _band, added = get_or_add(self._db, TableBand,
+        _band, added = get_or_add(self.db, TableBand,
                                   defaults=defaults, **kwargs)
         return _band.id
 
