@@ -1,8 +1,27 @@
 import click
 
 
-class Echoer(object):
+def config_to_resources(config):
+    """ Return `tilezilla` resources from a configuration dict
 
+    Args:
+        config (dict): `tilezilla` configuration
+
+    Return:
+        tuple[TileSpec, str, Database, DatacubeResource, DatasetResource]: A
+            collection of resources for checking, indexing, and tiling
+            data
+    """
+    from ..db import Database, DatacubeResource, DatasetResource
+    spec = config['tilespec']
+    store_name = config['store']['name']
+    db = Database.from_config(config['database'])
+    datacube = DatacubeResource(db, spec, store_name)
+    dataset = DatasetResource(db, datacube)
+    return spec, store_name, db, datacube, dataset
+
+
+class Echoer(object):
     """ Stylistic wrapper around click.echo for communicating with user
 
     Communication methods:
