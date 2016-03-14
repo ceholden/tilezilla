@@ -76,9 +76,13 @@ class DatacubeResource(object):
             return None
         return self._make_tile(_tile)
 
-    def get_tile_by_index(self, horizontal, vertical):
-        _tile = self.db.session.query(TableTile).filter_by(
-            horizontal=horizontal, vertical=vertical).first()
+    def get_tile_by_index(self, collection_name, horizontal, vertical):
+        collection_id = self.get_collection_by_name(collection_name).first().id
+        _tile = (self.db.session.query(TableTile)
+                 .filter_by(horizontal=horizontal,
+                            vertical=vertical,
+                            ref_collection_id=collection_id)
+                 .first())
         if not _tile:
             return None
         return self._make_tile(_tile)
@@ -92,8 +96,7 @@ class DatacubeResource(object):
         kwargs = dict(
             horizontal=horizontal,
             vertical=vertical,
-            hv='h{}v{}'.format(horizontal, vertical),
-
+            hv='h{}v{}'.format(horizontal, vertical)
         )
         tile, added = get_or_add(self.db, TableTile,
                                  defaults=defaults, **kwargs)
