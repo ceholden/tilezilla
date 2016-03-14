@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Utilities
 """
-import json
 import logging
 import os
 from contextlib import contextmanager
 
 import affine
+from osgeo import osr
 import rasterio
 import shapely
 import shapely.geometry
@@ -15,6 +15,7 @@ from rasterio import crs, warp
 from .core import BoundingBox
 
 logger = logging.getLogger('tilezilla')
+osr.UseExceptions()
 
 
 def match_to_grid(match, grid, pix_size):
@@ -127,41 +128,19 @@ def reproject_bounds(bounds, src_crs, dst_crs):
         return bounds
 
 
-# TODO: delete?
-def tile_to_geojson(lon, lat, size=1):
-    """ Return a Shapely geometry for a given tile
+def crs_to_wkt(src_crs):
+    """ Return WKT representation of a rasterio dataset's CRS
 
     Args:
-        lon (float): upper left longitude coordinate
-        lat (float): upper left latitude coordinate
-        size (float or tuple): one or more float values specifying the tile
-            size. If one value is specified, tile is assumed to be square.
+        src_crs (`dict`): Rasterio dataset CRS
 
     Returns:
-        dict: tile geometry as GeoJSON dict
-
+        str: WKT of CRS
     """
-    geojson = """
-    {
-        "geometry":
-        {
-            "coordinates": [[
-                [%s, %s],
-                [%s, %s],
-                [%s, %s],
-                [%s, %s],
-                [%s, %s]
-            ]],
-            "type": "Polygon"
-        }
-    }
-    """ % (lon, lat,                # upper left
-           lon + size, lat,         # upper right
-           lon + size, lat - size,  # lower right
-           lon, lat - size,         # lower left
-           lon, lat)                # upper left
+    sr = osr.SpatialReference()
+    sr.ImportFromProj4(crs.to_string(src_crs))
 
-    return json.loads(geojson)
+    return sr.ExportToWkt()
 
 
 @contextmanager
