@@ -2,12 +2,14 @@ from contextlib import contextmanager
 
 import sqlalchemy as sa
 
-from .sqlite.tables import Base
+from .sqlite.tables import (Base, TableTileSpec, TableCollection, TableTile,
+                            TableProduct, TableBand)
 
 
 class Database(object):
     """ The database connection
     """
+
     def __init__(self, engine, session):
         self.engine = engine
         self.session = session
@@ -42,10 +44,8 @@ class Database(object):
             'port': config.get('port', '') or None
         }
 
-        return cls.connect(
-            uri=sa.engine.url.URL(**uri_config),
-            debug=config.get('debug', False)
-        )
+        return cls.connect(uri=sa.engine.url.URL(**uri_config),
+                           debug=config.get('debug', False))
 
     def scope(self):
         """ Session as a context manager
@@ -66,4 +66,133 @@ class Database(object):
             except:
                 self.session.rollback()
                 raise
+
         return _scope()
+
+# TILE SPECIFICATIONS
+    def get_tilespec(self, id_):
+        return self.session.query(TableTileSpec).filter_by(id=id_).first()
+
+    def get_tilespec_by_name(self, name):
+        return self.session.query(TableTile).filter_by(desc=name).first()
+
+    def ensure_tilespec(self, desc, ul, crs, res, size):
+        """ Get or add a TileSpec to the database
+        """
+        spec = self.get_tilespec_by_name(desc)
+        if not spec:
+            with self.scope() as txn:
+                spec = TableTileSpec(desc=desc,
+                                     ul=ul,
+                                     crs=crs,
+                                     res=res,
+                                     size=size)
+                txn.add(spec)
+        return spec
+
+# COLLECTIONS
+    def get_collection(self, id_):
+        return (self.session.query(TableCollection)
+                .filter_by(id=id_).first())
+
+    def get_collection_by_name(self, tilespec_id, storage, name):
+        return (self.session.query(TableCollection)
+                .filter_by(name=name,
+                           ref_tilespec_id=tilespec_id,
+                           storage=storage).first())
+
+    def search_collections(self, **kwargs):
+        return self.session.query(TableCollection).filter_by(**kwargs).all()
+
+    def ensure_collection(self, tilespec_id, storage, name):
+        collection = self.get_collection_by_name(tilespec_id, storage, name)
+        if not collection:
+            with self.scope() as txn:
+                collection = TableCollection(ref_tilespec_id=tilespec_id,
+                                             storage=storage,
+                                             name=name)
+                txn.add(collection)
+        return collection
+
+# TILES
+    def get_tile(self, id_):
+        return self.session.query(TableTile).filter_by(id=id_).first()
+
+    def get_tile_by_index(self, collection_id, horizontal, vertical):
+        return (self.session.query(TableTile)
+                .filter_by(horizontal=horizontal,
+                           vertical=vertical,
+                           ref_collection_id=collection_id).first())
+
+    def ensure_tile(self, collection_id, horizontal, vertical, bounds):
+        tile = self.get_tile_by_index(collection_id, horizontal, vertical)
+        if not tile:
+            with self.scope() as txn:
+                tile = TableTile(ref_collection_id=collection_id,
+                                 horizontal=horizontal,
+                                 vertical=vertical,
+                                 hv='h{}v{}'.format(horizontal, vertical),
+                                 bounds=bounds)
+                txn.add(tile)
+        return tile
+
+# PRODUCTS
+    def get_product(self, id_):
+        return self.session.query(TableProduct).filter_by(id=id_).first()
+
+    def get_product_by_name(self, tile_id, name):
+        return (self.session.query(TableProduct)
+                .filter_by(timeseries_id=name,
+                           ref_tile_id=tile_id).first())
+
+    def get_products_by_name(self, name):
+        return (self.session.query(TableProduct)
+                .filter_by(timeseries_id=name).all())
+
+    def ensure_product(self, tile_id, collection_id, product):
+        prod = (self.session.query(TableProduct)
+                .filter_by(timeseires_id=product.timeseries_id,
+                           ref_collection_id=collection_id,
+                           ref_tile_id=tile_id))
+        if not prod:
+            with self.scope() as txn:
+                prod = TableProduct(
+                    ref_collection_id=collection_id,
+                    ref_tile_id=tile_id,
+                    timeseries_id=product.timeseires_id,
+                    platform=product.platform,
+                    instrument=product.instrument,
+                    acquired=product.acquired,
+                    processed=product.processed,
+                    metadata_=getattr(product, 'metadata', {}),
+                    metadata_files_=getattr(product, 'metadata_files', {})
+                )
+                txn.add(prod)
+        return prod
+
+# BANDS
+    def get_band(self, id_):
+        return self.session.query(TableBand).filter_by(id=id_).first()
+
+    def get_band_by_name(self, product_id, name):
+        return self.session.query(TableBand).filter_by(
+            ref_product_id=product_id,
+            standard_name=name)
+
+    def ensure_band(self, product_id, band):
+        band_ = self.get_band_by_name(product_id, band.standard_name)
+        if not band_:
+            band_ = TableBand(
+                ref_product_id=product_id,
+                standard_name=band.standard_name,
+                path=band.path,
+                bidx=band.bidx,
+                long_name=band.long_name,
+                friendly_name=band.friendly_name,
+                units=band.units,
+                fill=band.fill,
+                valid_min=band.valid_min,
+                valid_max=band.valid_max,
+                scale_factor=band.scale_factor
+            )
+        return band_

@@ -1,8 +1,5 @@
 """ Logic for adding/editing/getting entries in tables
 """
-from ._util import get_or_add
-from .sqlite.tables import (TableTileSpec, TableCollection,
-                            TableTile, TableProduct, TableBand)
 from ..core import Band, BoundingBox
 from ..products import registry as product_registry
 
@@ -19,87 +16,68 @@ class DatacubeResource(object):
         self.db = db
         self.tilespec = tilespec
         self.storage = storage
-        self.init()
+        #: int: Tile specification database ID
+        self.tilespec_id = self.init_tilespec(tilespec).id
 
 # TileSpec management
-    def init(self):
-        defaults = dict(ul=self.tilespec.ul,
-                        crs=self.tilespec.crs_str,
-                        res=self.tilespec.res,
-                        size=self.tilespec.size)
-        kwargs = dict(desc=self.tilespec.desc)
-        self.query_tilespec = get_or_add(self.db,
-                                         TableTileSpec,
-                                         defaults=defaults,
-                                         **kwargs)[0]
+    def init_tilespec(self, tilespec):
+        return self.db.ensure_tilespec(desc=tilespec.desc,
+                                       ul=tilespec.ul,
+                                       crs=tilespec.crs_str,
+                                       res=tilespec.res,
+                                       size=tilespec.size)
 
 # Collection management
     @property
     def collections(self):
-        _collections = (self.db.session.query(TableCollection)
-                        .filter_by(id=self.query_tilespec.id).all())
+        _collections = self.db.search_collections(
+            ref_tilespec_id=self.query_tilespec.id)
         if not _collections:
-            return _collections
+            return None
         return [c.name for c in _collections]
 
     def get_collection(self, _id):
-        return (self.db.session.query(TableCollection)
-                .filter_by(id=_id, storage=self.storage).first())
+        return self.db.get_collection(_id, self.storage)
 
     def get_collection_by_name(self, name):
-        return (self.db.session.query(TableCollection)
-                .filter_by(name=name, storage=self.storage).first())
+        return self.db.get_collection_by_name(name, self.storage)
 
     def search_collections(self, **kwargs):
-        return self.db.query(TableCollection).filter_by(**kwargs).all()
+        return self.db.search_collections(**kwargs)
 
     def ensure_collection(self, name):
         """ Return Collection ID by name, creating a new one if needed
 
         Args:
             name (str): Name of collection to add or retrieve
+
         Returns:
             int: The `id` index of the added collection
         """
-        defaults = dict(ref_tilespec_id=self.query_tilespec.id,
-                        storage=self.storage)
-        kwargs = dict(name=name)
-        collection, added = get_or_add(self.db, TableCollection,
-                                       defaults=defaults, **kwargs)
-        return collection.id
+        col = self.db.ensure_collection(self.tilespec_id, self.storage, name)
+        return col.id
 
 # Tile management
-    def get_tile(self, _id):
-        _tile = (self.db.session.query(TableTile)
-                 .filter(TableTile.id == _id).first())
+    def get_tile(self, id_):
+        _tile = self.db.get_tile(id_)
         if not _tile:
             return None
         return self._make_tile(_tile)
 
     def get_tile_by_index(self, collection_name, horizontal, vertical):
-        collection_id = self.get_collection_by_name(collection_name).first().id
-        _tile = (self.db.session.query(TableTile)
-                 .filter_by(horizontal=horizontal,
-                            vertical=vertical,
-                            ref_collection_id=collection_id)
-                 .first())
+        _tile = self.db.get_tile_by_index(collection_name, self.storage,
+                                          horizontal, vertical)
         if not _tile:
             return None
         return self._make_tile(_tile)
 
     def ensure_tile(self, collection_name, horizontal, vertical):
-        collection_id = self.ensure_collection(collection_name)
-        defaults = dict(
-            ref_collection_id=collection_id,
-            bounds=self.tilespec[(vertical, horizontal)].bounds
-        )
-        kwargs = dict(
-            horizontal=horizontal,
-            vertical=vertical,
-            hv='h{}v{}'.format(horizontal, vertical)
-        )
-        tile, added = get_or_add(self.db, TableTile,
-                                 defaults=defaults, **kwargs)
+        collection = self.ensure_collection(self.tilespec_id,
+                                            self.storage,
+                                            collection_name)
+        bounds = self.tilespec[(vertical, horizontal)].bounds
+
+        tile = self.db.ensure_tile(collection.id, horizontal, vertical, bounds)
         return tile.id
 
     def _make_tile(self, tile_query):
@@ -110,52 +88,37 @@ class DatacubeResource(object):
 class DatasetResource(object):
     """ Individual dataset product observations per collection and tile
     """
-    def __init__(self, db, datacube):
+    def __init__(self, db, datacube, collection_name):
         self.db = db
         self.datacube = datacube
+        self.collection = self.db.ensure_collection(self.datacube.tilespec_id,
+                                                    self.datacube.storage,
+                                                    collection_name)
+        self.collection_id = self.collection.id
 
     def get_product(self, id_):
         """ Get product by ``id``
         """
-        _product = (self.db.session.query(TableProduct)
-                    .filter_by(id=id_).first())
+        _product = self.db.get_product(id_)
         return self._make_product(_product)
+
+    def get_product_by_name(self, tile_id, name):
+        return self._make_product(self.db.get_product_by_name(tile_id, name))
 
     def get_products_by_name(self, name):
         """ Get product by ``timeseries_id``
         """
-        products = []
-        for prod in (self.db.session.query(TableProduct)
-                     .filter_by(timeseries_id=name).all()):
-            products.append(self._make_product(prod))
-        return products
+        return [self._make_product(prod) for prod in
+                self.db.get_products_by_name(name)]
 
     def ensure_product(self, tile_id, product):
         """ Add a product to index, creating if needed
 
         Returns:
-            list[int]: A list of IDs for each product added to a tile
+            int: Database ID of the product added or retrieved
         """
-        collection_id = (self.db.session.query(TableTile)
-                         .filter_by(id=tile_id)
-                         .first().ref_collection_id)
-        # Add product
-        defaults = dict(
-            platform=product.platform,
-            instrument=product.instrument,
-            processed=product.processed.datetime,
-            metadata_=getattr(product, 'metadata', {}),
-            metadata_files_=getattr(product, 'metadata_files', {})
-        )
-        kwargs = dict(
-            timeseries_id=product.timeseries_id,
-            ref_collection_id=collection_id,
-            ref_tile_id=tile_id,
-            acquired=product.acquired.datetime
-        )
-        _product, added = get_or_add(self.db, TableProduct,
-                                     defaults=defaults, **kwargs)
-        return _product.id
+        collection_id = self.db.get_tile(tile_id).ref_collection_id
+        return self.db.ensure_product(tile_id, collection_id, product).id
 
     def _make_product(self, query):
         product_class = product_registry.products[query.ref_collection.name]
@@ -171,6 +134,20 @@ class DatasetResource(object):
             bands=bands
         )
 
+    def get_product_bands(self, tile_id, product):
+        """ Return list of Bands indexed from a product for a given tile
+
+        Args:
+            tile (Tile): Check for products in this tile
+            product (BaseProduct): The product to check for
+
+        Returns:
+            list[Band]: A list of :class:`Band`s indexed for this product
+                and tile
+        """
+        prod = self.db.get_product_by_name(tile_id, product.timeseries_id)
+        return [self._make_band(b) for b in prod.bands]
+
     def ensure_band(self, product_id, band):
         """ Add a band to index, creating if necessary
 
@@ -179,22 +156,9 @@ class DatasetResource(object):
             band (Band): An observation in some band belonging to a product
 
         Returns:
-            list[int]: A list of IDs for each band added to tile
+            int: Database ID for the band added or retrieved
         """
-        kwargs = dict(ref_product_id=product_id,
-                      standard_name=band.standard_name)
-        defaults = dict(path=band.path,
-                        bidx=band.bidx,
-                        long_name=band.long_name,
-                        friendly_name=band.friendly_name,
-                        units=band.units,
-                        fill=band.fill,
-                        valid_min=band.valid_min,
-                        valid_max=band.valid_max,
-                        scale_factor=band.scale_factor)
-        _band, added = get_or_add(self.db, TableBand,
-                                  defaults=defaults, **kwargs)
-        return _band.id
+        return self.db.ensure_band(product_id, band).id
 
     def _make_band(self, query):
         return Band(
