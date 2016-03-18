@@ -16,7 +16,7 @@ The :class:`DatacubeResource` handles tile specifications and tiles while the
 TODO:
 * Searches
     * Search using `filter_by` by combining keyword arguments for each database
-      level (Collection, Tile, Product, Band) and dictionaries passed to these
+      level (Tile, Product, Band) and dictionaries passed to these
       keyword arguments
     * Tie this search into click CLI (multiple key=value flags)
 * Database info request
@@ -27,14 +27,12 @@ TODO:
 * Summary statistics about a database tile, collection, etc.
     * http://sqlalchemy-utils.readthedocs.org/en/latest/aggregates.html
 """
-from .sqlite.tables import (TableTileSpec, TableCollection,
-                                TableTile, TableProduct, TableBand)
+from .sqlite.tables import (TableTileSpec, TableTile, TableProduct, TableBand)
 from ._db import Database
 from ._resources import DatacubeResource, DatasetResource
 
 TABLES = {
     'tilespec': TableTileSpec,
-    'collection': TableCollection,
     'tile': TableTile,
     'product': TableProduct,
     'band': TableBand

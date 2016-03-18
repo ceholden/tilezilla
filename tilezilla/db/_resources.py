@@ -84,6 +84,12 @@ class DatasetResource(object):
         return [self._make_product(prod) for prod in
                 self.db.get_products_by_name(name)]
 
+    def get_products_by_tile(self, tile_id):
+        """ Get all products within a tile
+        """
+        return [self._make_product(_prod) for _prod in
+                self.datacube.get_tile(tile_id).products]
+
     def ensure_product(self, tile_id, product):
         """ Add a product to index, creating if needed
 

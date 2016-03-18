@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 import sqlalchemy as sa
 
-from .sqlite.tables import (Base, TableTileSpec, TableCollection, TableTile,
+from .sqlite.tables import (Base, TableTileSpec, TableTile,
                             TableProduct, TableBand)
 
 
