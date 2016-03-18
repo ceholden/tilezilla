@@ -66,12 +66,17 @@ class DatasetResource(object):
         """ Get product by ``id``
         """
         _product = self.db.get_product(id_)
+        if not _product:
+            return None
         return self._make_product(_product)
 
     def get_product_by_name(self, tile_id, name):
         """ Get product by name within a tile
         """
-        return self._make_product(self.db.get_product_by_name(tile_id, name))
+        _product = self.db.get_product_by_name(tile_id, name)
+        if not _product:
+            return None
+        return self._make_product(_product)
 
     def get_products_by_name(self, name):
         """ Get all products matching ``timeseries_id``, regardless of tile
@@ -113,6 +118,8 @@ class DatasetResource(object):
                 and tile
         """
         prod = self.db.get_product_by_name(tile_id, product.timeseries_id)
+        if not prod:
+            return None
         return [self._make_band(b) for b in prod.bands]
 
     def ensure_band(self, product_id, band):
