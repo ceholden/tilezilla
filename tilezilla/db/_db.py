@@ -161,17 +161,33 @@ class Database(object):
     def ensure_band(self, product_id, band):
         band_ = self.get_band_by_name(product_id, band.standard_name)
         if not band_:
-            band_ = TableBand(
-                ref_product_id=product_id,
-                standard_name=band.standard_name,
-                path=band.path,
-                bidx=band.bidx,
-                long_name=band.long_name,
-                friendly_name=band.friendly_name,
-                units=band.units,
-                fill=band.fill,
-                valid_min=band.valid_min,
-                valid_max=band.valid_max,
-                scale_factor=band.scale_factor
-            )
+            with self.scope() as txn:
+                band_ = self._create_band(product_id, band)
+                txn.add(band_)
         return band_
+
+    def update_band(self, product_id, band):
+        band_ = self.get_band_by_name(product_id, band.standard_name)
+        new_band = self._create_band(product_id, band)
+        with self.scope() as txn:
+            if band_:
+                new_band.id = band_.id
+                txn.merge(new_band)
+            else:
+                txn.add(new_band)
+        return new_band
+
+    def _create_band(self, product_id, band):
+        return TableBand(
+            ref_product_id=product_id,
+            standard_name=band.standard_name,
+            path=band.path,
+            bidx=band.bidx,
+            long_name=band.long_name,
+            friendly_name=band.friendly_name,
+            units=band.units,
+            fill=band.fill,
+            valid_min=band.valid_min,
+            valid_max=band.valid_max,
+            scale_factor=band.scale_factor
+        )

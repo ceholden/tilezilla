@@ -140,6 +140,18 @@ class DatasetResource(object):
         """
         return self.db.ensure_band(product_id, band).id
 
+    def update_band(self, product_id, band):
+        """ Add a new band, updating existing band if necessary
+
+        Args:
+            product_id (int): ID of product that band belongs to
+            band (Band): An observation in some band belonging to a product
+
+        Returns:
+            int: Database ID for band added or updated
+        """
+        return self.db.update_band(product_id, band).id
+
     def _make_band(self, query):
         return Band(
             path=query.path,
