@@ -2,23 +2,25 @@
 """
 import click
 
-from .options import callback_dict
+from . import options
 from ..db import TABLES, Database, DatacubeResource, DatasetResource
 
 opt_db_table = click.argument('table', type=click.Choice(TABLES.keys()))
 
 
 @click.group(help='Database information and queries')
+@options.pass_config
 @click.pass_context
-def db(ctx):
+def db(ctx, config):
     # Stick in context for sub-commands
-    ctx.obj['db'] = Database.from_config(ctx.obj['config']['database'])
+    ctx.obj['db'] = Database.from_config(config['database'])
 
 
 @db.command(short_help='Print database information')
 @opt_db_table
+@options.pass_config
 @click.pass_context
-def info(ctx, table):
+def info(ctx, config, table):
     """ Print table information, like the table fields
     """
     print('Info: "{}"'.format(table))
@@ -26,10 +28,11 @@ def info(ctx, table):
 @db.command(short_help='Search database')
 @opt_db_table
 @click.option('--filter', 'filter_', type=str,
-              callback=callback_dict, multiple=True,
+              callback=options.callback_dict, multiple=True,
               help='Fitler TABLE by attr=value')
+@options.pass_config
 @click.pass_context
-def search(ctx, filter_, table):
+def search(ctx, config, filter_, table):
     """ Search a table according to some filters
 
     Example: search the "product" table for a given product ID

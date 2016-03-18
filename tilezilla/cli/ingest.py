@@ -8,19 +8,19 @@ import click
 import rasterio
 import six
 
-from . import cliutils, options
+from . import options
+from .cliutils import config_to_resources, Echoer
 from .. import products
 from .._util import decompress_to, include_bands
-from ..db import Database, DatacubeResource, DatasetResource
 from ..errors import FillValueException
 from ..geoutils import reproject_as_needed, reproject_bounds
 from ..stores import STORAGE_TYPES
 
 logger = logging.getLogger('tilezilla')
-echoer = cliutils.Echoer(message_indent=0)
+echoer = Echoer(message_indent=0)
 
 
-def ingest_source(config, source):
+def ingest_source(config, source, overwrite=False):
     """ Ingest (tile and ingest) a source
     """
     spec = config['tilespec']
@@ -83,10 +83,29 @@ def ingest_source(config, source):
                         store.store_file(str(product.metadata_files[md_name]))
 
 
+def _include_bands_from_config(config, bands):
+    """ Return a list of :class:`Band`s specified in tilezilla configuration
+
+    Args:
+        config (dict): `tilezilla` configuration
+        bands (list[Band]): List of bands to filter
+
+    Returns:
+        list[Bands]: Included bands
+    """
+    # TODO: move elsewhere
+    product_filter = (config.get('products', {}).copy()
+                      .get('include_filter', {}))
+    include_regex = product_filter.pop('regex', False)
+
+    return include_bands(bands, product_filter, regex=include_regex)
+
+
 @click.command(short_help='Ingest known products into tile dataset format')
 @options.arg_sources
+@options.pass_config
 @click.pass_context
-def ingest(ctx, sources):
+def ingest(ctx, config, sources):
     for source in sources:
         echoer.info('Working on: {}'.format(source))
-        ingest_source(ctx.obj['config'], source)
+        ingest_and_index_source(config, source)
