@@ -1,5 +1,18 @@
 """ Database for ``tilezilla``
 
+This submodule assists with access to the database that indexes products
+ingested by `tilezilla`. The chief way of accessing the database is via
+the :class:`Database`, :class:`DatacubeResource`, and :class:`DatasetResource`.
+
+The "resources" are designed to be a higher level access to
+the database. As such, :class:`DatacubeResource` and :class:`DatasetResource`
+both return instances of the object type (a tile specification, a tile, a
+product, a band) requested while :class:`Database` will return a SqlAlchemy ORM
+object instance retrieved from the database.
+
+The :class:`DatacubeResource` handles tile specifications and tiles while the
+:class:`DatasetResource` deals with products and bands.
+
 TODO:
 * Searches
     * Search using `filter_by` by combining keyword arguments for each database

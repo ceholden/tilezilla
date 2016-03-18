@@ -90,48 +90,28 @@ class Database(object):
                 txn.add(spec)
         return spec
 
-# COLLECTIONS
-    def get_collection(self, id_):
-        return (self.session.query(TableCollection)
-                .filter_by(id=id_).first())
-
-    def get_collection_by_name(self, tilespec_id, storage, name):
-        return (self.session.query(TableCollection)
-                .filter_by(name=name,
-                           ref_tilespec_id=tilespec_id,
-                           storage=storage).first())
-
-    def search_collections(self, **kwargs):
-        return self.session.query(TableCollection).filter_by(**kwargs).all()
-
-    def ensure_collection(self, tilespec_id, storage, name):
-        collection = self.get_collection_by_name(tilespec_id, storage, name)
-        if not collection:
-            with self.scope() as txn:
-                collection = TableCollection(ref_tilespec_id=tilespec_id,
-                                             storage=storage,
-                                             name=name)
-                txn.add(collection)
-        return collection
-
 # TILES
     def get_tile(self, id_):
         return self.session.query(TableTile).filter_by(id=id_).first()
 
-    def get_tile_by_index(self, collection_id, horizontal, vertical):
+    def get_tile_by_tile_index(self, tilespec_id, storage, collection,
+                               horizontal, vertical):
         return (self.session.query(TableTile)
                 .filter_by(horizontal=horizontal,
                            vertical=vertical,
-                           ref_collection_id=collection_id).first())
+                           ref_tilespec_id=tilespec_id).first())
 
-    def ensure_tile(self, collection_id, horizontal, vertical, bounds):
-        tile = self.get_tile_by_index(collection_id, horizontal, vertical)
+    def ensure_tile(self, tilespec_id, storage, collection,
+                    horizontal, vertical, bounds):
+        tile = self.get_tile_by_tile_index(tilespec_id, storage, collection,
+                                           horizontal, vertical)
         if not tile:
             with self.scope() as txn:
-                tile = TableTile(ref_collection_id=collection_id,
+                tile = TableTile(ref_tilespec_id=tilespec_id,
+                                 storage=storage,
+                                 collection=collection,
                                  horizontal=horizontal,
                                  vertical=vertical,
-                                 hv='h{}v{}'.format(horizontal, vertical),
                                  bounds=bounds)
                 txn.add(tile)
         return tile
@@ -149,15 +129,13 @@ class Database(object):
         return (self.session.query(TableProduct)
                 .filter_by(timeseries_id=name).all())
 
-    def ensure_product(self, tile_id, collection_id, product):
+    def ensure_product(self, tile_id, product):
         prod = (self.session.query(TableProduct)
                 .filter_by(timeseires_id=product.timeseries_id,
-                           ref_collection_id=collection_id,
                            ref_tile_id=tile_id))
         if not prod:
             with self.scope() as txn:
                 prod = TableProduct(
-                    ref_collection_id=collection_id,
                     ref_tile_id=tile_id,
                     timeseries_id=product.timeseires_id,
                     platform=product.platform,

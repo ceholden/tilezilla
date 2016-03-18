@@ -27,36 +27,6 @@ class DatacubeResource(object):
                                        res=tilespec.res,
                                        size=tilespec.size)
 
-# Collection management
-    @property
-    def collections(self):
-        _collections = self.db.search_collections(
-            ref_tilespec_id=self.query_tilespec.id)
-        if not _collections:
-            return None
-        return [c.name for c in _collections]
-
-    def get_collection(self, _id):
-        return self.db.get_collection(_id, self.storage)
-
-    def get_collection_by_name(self, name):
-        return self.db.get_collection_by_name(name, self.storage)
-
-    def search_collections(self, **kwargs):
-        return self.db.search_collections(**kwargs)
-
-    def ensure_collection(self, name):
-        """ Return Collection ID by name, creating a new one if needed
-
-        Args:
-            name (str): Name of collection to add or retrieve
-
-        Returns:
-            int: The `id` index of the added collection
-        """
-        col = self.db.ensure_collection(self.tilespec_id, self.storage, name)
-        return col.id
-
 # Tile management
     def get_tile(self, id_):
         _tile = self.db.get_tile(id_)
@@ -64,20 +34,19 @@ class DatacubeResource(object):
             return None
         return self._make_tile(_tile)
 
-    def get_tile_by_index(self, collection_name, horizontal, vertical):
-        _tile = self.db.get_tile_by_index(collection_name, self.storage,
-                                          horizontal, vertical)
+    def get_tile_by_tile_index(self, collection, horizontal, vertical):
+        _tile = self.db.get_tile_by_tile_index(
+            self.tilespec_id, collection, self.storage,
+            horizontal, vertical)
         if not _tile:
             return None
         return self._make_tile(_tile)
 
-    def ensure_tile(self, collection_name, horizontal, vertical):
-        collection = self.ensure_collection(self.tilespec_id,
-                                            self.storage,
-                                            collection_name)
+    def ensure_tile(self, collection, horizontal, vertical):
         bounds = self.tilespec[(vertical, horizontal)].bounds
 
-        tile = self.db.ensure_tile(collection.id, horizontal, vertical, bounds)
+        tile = self.db.ensure_tile(self.tilespec_id, self.storage,
+                                   collection, horizontal, vertical, bounds)
         return tile.id
 
     def _make_tile(self, tile_query):
@@ -91,10 +60,7 @@ class DatasetResource(object):
     def __init__(self, db, datacube, collection_name):
         self.db = db
         self.datacube = datacube
-        self.collection = self.db.ensure_collection(self.datacube.tilespec_id,
-                                                    self.datacube.storage,
-                                                    collection_name)
-        self.collection_id = self.collection.id
+        self.collection = collection_name
 
     def get_product(self, id_):
         """ Get product by ``id``
@@ -103,10 +69,12 @@ class DatasetResource(object):
         return self._make_product(_product)
 
     def get_product_by_name(self, tile_id, name):
+        """ Get product by name within a tile
+        """
         return self._make_product(self.db.get_product_by_name(tile_id, name))
 
     def get_products_by_name(self, name):
-        """ Get product by ``timeseries_id``
+        """ Get all products matching ``timeseries_id``, regardless of tile
         """
         return [self._make_product(prod) for prod in
                 self.db.get_products_by_name(name)]
@@ -117,8 +85,7 @@ class DatasetResource(object):
         Returns:
             int: Database ID of the product added or retrieved
         """
-        collection_id = self.db.get_tile(tile_id).ref_collection_id
-        return self.db.ensure_product(tile_id, collection_id, product).id
+        return self.db.ensure_product(tile_id, product).id
 
     def _make_product(self, query):
         product_class = product_registry.products[query.ref_collection.name]
@@ -138,7 +105,7 @@ class DatasetResource(object):
         """ Return list of Bands indexed from a product for a given tile
 
         Args:
-            tile (Tile): Check for products in this tile
+            tile_id (int): Check for products in this tile
             product (BaseProduct): The product to check for
 
         Returns:

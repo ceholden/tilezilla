@@ -2,8 +2,9 @@
 """
 import sqlalchemy as sa
 import sqlalchemy_utils as sau
+from sqlalchemy.ext.declarative import declarative_base
 
-Base = sa.ext.declarative.declarative_base()
+Base = declarative_base()
 
 
 class TableTileSpec(Base):
@@ -23,39 +24,32 @@ class TableTileSpec(Base):
     size = sa.Column(sau.ScalarListType(int), nullable=False)
 
     # Reference to tiles using this tile specification
-    collections = sa.orm.relationship('TableCollection',
-                                      backref='ref_tilespec')
-
-
-class TableCollection(Base):
-    """ Collection of tiled products
-    """
-    __tablename__ = 'collection'
-    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    ref_tilespec_id = sa.Column(
-        sa.ForeignKey(TableTileSpec.id),
-        nullable=False)
-    name = sa.Column(sa.String, nullable=False)
-    storage = sa.Column(sa.String, nullable=False)
-
-    tiles = sa.orm.relationship('TableTile', backref='ref_collection')
-    products = sa.orm.relationship('TableProduct', backref='ref_collection')
+    tiles = sa.orm.relationship('TableTile', backref='ref_tilespec')
 
 
 class TableTile(Base):
     """ SQL representation of :class:`tilespec.Tile`
     """
     __tablename__ = 'tile'
+    __table_args__ = (
+        # Allow only one unique tile per tilespec per collection/storage method
+        sa.UniqueConstraint('horizontal', 'vertical', 'ref_collection_id',
+                            'storage', 'collection',
+                            name='_tilespec_tile_uc')
+    )
+
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    ref_collection_id = sa.Column(
-        sa.ForeignKey(TableCollection.id),
-        nullable=False)
+    ref_collection_id = sa.Column(sa.ForeignKey(TableTileSpec.id),
+                                  nullable=False)
+    #: str: Name of storage method
+    storage = sa.Column(sa.String, index=True, nullable=False)
+    #: str: Collection name
+    collection = sa.Column(sa.String, index=True, nullable=False)
+
     #: int: Horizontal index of tile in tile specification
-    horizontal = sa.Column(sa.Integer)
+    horizontal = sa.Column(sa.Integer, index=True)
     #: int: Vertical index of tile in tile specification
-    vertical = sa.Column(sa.Integer)
-    #: str: Concatenation of horizontal and vertical indices
-    hv = sa.Column(sa.String, index=True, unique=True)
+    vertical = sa.Column(sa.Integer, index=True)
     #: BoundingBox: Bounds of tile in EPSG:4326
     bounds = sa.Column(sau.ScalarListType(float), nullable=False)
     # Reference to product collections stored within this tile
@@ -66,11 +60,16 @@ class TableProduct(Base):
     """ SQL representation of dataset products
     """
     __tablename__ = 'product'
+    __table_args__ = (
+        # Allow only one observation (timeseires_id) per tile
+        sa.UniqueConstraint('ref_tile_id', 'timeseires_id',
+                            name='_tile_store_collection_id_uc')
+    )
+
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    #: int: Reference to tile containing product
     ref_tile_id = sa.Column(sa.ForeignKey(TableTile.id), nullable=False)
-    ref_collection_id = sa.Column(
-        sa.ForeignKey(TableCollection.id),
-        nullable=False)
+
     timeseries_id = sa.Column(sa.String, index=True, nullable=False)
     platform = sa.Column(sa.String, nullable=False)
     instrument = sa.Column(sa.String, nullable=False)
