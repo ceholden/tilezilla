@@ -33,14 +33,14 @@ class TableTile(Base):
     __tablename__ = 'tile'
     __table_args__ = (
         # Allow only one unique tile per tilespec per collection/storage method
-        sa.UniqueConstraint('horizontal', 'vertical', 'ref_collection_id',
+        sa.UniqueConstraint('horizontal', 'vertical', 'ref_tilespec_id',
                             'storage', 'collection',
-                            name='_tilespec_tile_uc')
+                            name='_tilespec_tile_uc'),
     )
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    ref_collection_id = sa.Column(sa.ForeignKey(TableTileSpec.id),
-                                  nullable=False)
+    ref_tilespec_id = sa.Column(sa.ForeignKey(TableTileSpec.id),
+                                nullable=False)
     #: str: Name of storage method
     storage = sa.Column(sa.String, index=True, nullable=False)
     #: str: Collection name
@@ -61,9 +61,9 @@ class TableProduct(Base):
     """
     __tablename__ = 'product'
     __table_args__ = (
-        # Allow only one observation (timeseires_id) per tile
-        sa.UniqueConstraint('ref_tile_id', 'timeseires_id',
-                            name='_tile_store_collection_id_uc')
+        # Allow only one observation (timeseries_id) per tile
+        sa.UniqueConstraint('ref_tile_id', 'timeseries_id',
+                            name='_tile_store_collection_id_uc'),
     )
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)

@@ -99,7 +99,7 @@ class DatasetResource(object):
         return self.db.ensure_product(tile_id, product).id
 
     def _make_product(self, query):
-        product_class = product_registry.products[query.ref_collection.name]
+        product_class = product_registry.products[query.ref_tile.collection]
         bands = [self._make_band(b) for b in query.bands]
 
         return product_class(

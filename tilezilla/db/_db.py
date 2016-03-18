@@ -74,7 +74,7 @@ class Database(object):
         return self.session.query(TableTileSpec).filter_by(id=id_).first()
 
     def get_tilespec_by_name(self, name):
-        return self.session.query(TableTile).filter_by(desc=name).first()
+        return self.session.query(TableTileSpec).filter_by(desc=name).first()
 
     def ensure_tilespec(self, desc, ul, crs, res, size):
         """ Get or add a TileSpec to the database
@@ -130,14 +130,15 @@ class Database(object):
                 .filter_by(timeseries_id=name).all())
 
     def ensure_product(self, tile_id, product):
-        prod = (self.session.query(TableProduct)
-                .filter_by(timeseires_id=product.timeseries_id,
-                           ref_tile_id=tile_id))
-        if not prod:
+        product_ = (self.session.query(TableProduct)
+                    .filter_by(timeseries_id=product.timeseries_id,
+                               ref_tile_id=tile_id)
+                    .first())
+        if not product_:
             with self.scope() as txn:
-                prod = TableProduct(
+                product_ = TableProduct(
                     ref_tile_id=tile_id,
-                    timeseries_id=product.timeseires_id,
+                    timeseries_id=product.timeseries_id,
                     platform=product.platform,
                     instrument=product.instrument,
                     acquired=product.acquired,
@@ -145,8 +146,8 @@ class Database(object):
                     metadata_=getattr(product, 'metadata', {}),
                     metadata_files_=getattr(product, 'metadata_files', {})
                 )
-                txn.add(prod)
-        return prod
+                txn.add(product_)
+        return product_
 
 # BANDS
     def get_band(self, id_):
@@ -155,7 +156,7 @@ class Database(object):
     def get_band_by_name(self, product_id, name):
         return self.session.query(TableBand).filter_by(
             ref_product_id=product_id,
-            standard_name=name)
+            standard_name=name).first()
 
     def ensure_band(self, product_id, band):
         band_ = self.get_band_by_name(product_id, band.standard_name)
