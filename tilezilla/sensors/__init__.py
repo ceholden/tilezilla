@@ -1,4 +1,4 @@
-""" Sensor specific information
+""" Sensor specific information or helper functions/classes
 """
 import json
 import pkgutil

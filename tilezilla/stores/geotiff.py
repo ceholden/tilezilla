@@ -64,8 +64,7 @@ class GeoTIFFStore(object):
         """ Store product variable contained within this tile
 
         Args:
-            product (BaseProduct): A :class:`tilezilla.product.core.BaseProduct`
-                to store
+            product (BaseProduct): A product to store
             band (Band): A :class:`Band` containing an observed variable
             overwrite (bool): Allow overwriting
 
@@ -81,9 +80,8 @@ class GeoTIFFStore(object):
         if np.all(src_data == band.fill):
             raise FillValueException('Variable is 100% fill value')
 
-        root = os.path.join(self.path, product.timeseries_id)
-        mkdir_p(root)
-        dst_path = self._band_filename(root, band)
+        dst_path = self._band_filename(product, band)
+        mkdir_p(os.path.dirname(dst_path))
 
         dst_meta = band.src.meta.copy()
         dst_meta.update(self.meta_options)
@@ -99,21 +97,28 @@ class GeoTIFFStore(object):
                                   'this driver at the moment as data from'
                                   'it can be read directly from disk.')
 
-    def store_file(self, path):
+    def store_file(self, product, path):
         """ Store a file with the product in an accessible way
 
         An example use case for this method include storing metadata files
         associated with a given product (e.g., "MTL" text files for Landsat).
 
         Args:
+            product (BaseProduct): A product to store
             path (str): The path of the file to be stored
 
         Returns:
             str: The path of the file once copied into this product's store
         """
-        return shutil.copy(path, self._dirname)
+        return shutil.copy(path, self._product_filename(product))
 
-    def _band_filename(self, band):
-        """ Return full filename for a given band
+    def _product_filename(self, product):
+        """ Return path to product
         """
-        return os.path.join(self._dirname, os.path.basename(band.path))
+        return os.path.join(self.path, product.timeseries_id)
+
+    def _band_filename(self, product, band):
+        """ Return path to a band in a product
+        """
+        return os.path.join(self._product_filename(product),
+                            os.path.basename(band.path))
