@@ -10,7 +10,7 @@ import six
 
 from . import options
 from .cliutils import config_to_resources, Echoer
-from .. import products
+from .. import products, db
 from .._util import decompress_to, include_bands
 from ..errors import FillValueException
 from ..geoutils import reproject_as_needed, reproject_bounds
@@ -23,64 +23,81 @@ echoer = Echoer(message_indent=0)
 def ingest_source(config, source, overwrite=False):
     """ Ingest (tile and ingest) a source
     """
-    spec = config['tilespec']
-    store_name = config['store']['name']
-    db = Database.from_config(config['database'])
-    datacube = DatacubeResource(db, spec, store_name)
-    dataset = DatasetResource(db, datacube)
-
+    spec, storage_name, database, datacube = config_to_resources(config)
     # TODO: config file should describe the basename of tile directories
     # TODO: document choice of where these variables come from (Tile)
     # TODO: parametrize zfill
-    tile_root = os.path.join(
-        config['store']['root'], config['store']['tile_dirpattern'])
-
-    product_filter = config.get('products', {}).get('include_filter', {})
-    include_regex = product_filter.pop('regex', False)
-    include_filter = product_filter.copy()
+    tile_root = os.path.join(config['store']['root'],
+                             config['store']['tile_dirpattern'])
 
     with decompress_to(source) as tmpdir:
-        # Find product & select bands
+        # Find product and get dataset database resource
         product = products.registry.sniff_product_type(tmpdir)
-        desired_bands = include_bands(
-            product.bands, include_filter, regex=include_regex
-        )
+        dataset = db.DatasetResource(database, datacube, product.description)
+        collection_name = product.description
+        # Subset bands
+        desired_bands = _include_bands_from_config(config, product.bands)
 
-        # TODO: get bounding_box and reproject to tilespec.crs
-        # TODO: next, get tiles before doing anything to bands
         bbox = reproject_bounds(product.bounds, 'EPSG:4326', spec.crs)
+
+        # Find tiles for product & IDs of these tiles in database
         tiles = list(spec.bounds_to_tile(bbox))
+        tiles_id = [
+            datacube.ensure_tile(
+                collection_name, tile.horizontal, tile.vertical)
+            for tile in tiles
+        ]
+        tiles_product_query = [
+            database.get_product_by_name(tile_id, product.timeseries_id)
+            for tile_id in tiles_id
+        ]
 
         for band in desired_bands:
             with reproject_as_needed(band.src, spec) as src:
                 band.src = src
                 echoer.item('Tiling: {}'.format(band.long_name))
-                for tile in tiles:
+                for tile, tile_id, tile_prod_query in zip(tiles,
+                                                          tiles_id,
+                                                          tiles_product_query):
+                    # Check if exists
+                    if tile_prod_query:
+                        _band_names = [b.standard_name for b in
+                                       tile_prod_query.bands]
+                        if band.standard_name in _band_names and not overwrite:
+                            echoer.item('Already tiled -- skipping')
+                            continue
+
                     # Setup dataset store
                     path = tile.str_format(tile_root)
-                    store = STORAGE_TYPES[store_name](path, tile, product)
+                    store_cls = STORAGE_TYPES[config['store']['name']]
+                    store = store_cls(path, tile,
+                                      meta_options=config['store']['co'])
+
                     # Save and record path
                     try:
-                        dst_path = store.store_variable(band)
+                        dst_path = store.store_variable(product, band,
+                                                        overwrite=overwrite)
                     except FillValueException:
                         # TODO: skip tile but complain
                         continue
                     band.path = dst_path
-                    # TODO: delete echo
                     echoer.item('    saved to: {}'.format(dst_path))
 
-                    # Index tile and product
-                    tile_id = datacube.ensure_tile(product.description,
-                                                   tile.horizontal,
-                                                   tile.vertical)
-                    product_id = dataset.ensure_product(tile_id, product)
-                    # Index
-                    dataset.ensure_band(product_id, band)
-                    # TODO: delete if index went bad
+                    # Update index with new product/band entry
+                    if tile_prod_query:
+                        # TODO: we need to handle deleting/transfering existing
+                        #       bands over maybe overwriting product
+                        band_id = dataset.update_band(tile_prod_query.id, band)
+                    else:
+                        product_id = dataset.ensure_product(tile_id, product)
+                        band_id = dataset.ensure_band(product_id, band)
+
+                    # TODO: delete file if index went bad
 
                     # Copy over metadata files
                     for md_name in product.metadata_files:
-                        store.store_file(str(product.metadata_files[md_name]))
+                        store.store_file(product,
+                                         str(product.metadata_files[md_name]))
 
 
 def _include_bands_from_config(config, bands):
@@ -102,10 +119,12 @@ def _include_bands_from_config(config, bands):
 
 
 @click.command(short_help='Ingest known products into tile dataset format')
+@click.option('--overwrite', is_flag=True,
+              help='Overwriting existing tiled data')
 @options.arg_sources
 @options.pass_config
 @click.pass_context
-def ingest(ctx, config, sources):
+def ingest(ctx, config, sources, overwrite=False):
     for source in sources:
         echoer.info('Working on: {}'.format(source))
-        ingest_and_index_source(config, source)
+        ingest_source(config, source, overwrite=overwrite)
