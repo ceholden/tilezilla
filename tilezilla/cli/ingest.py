@@ -2,11 +2,8 @@
 """ CLI to process imagery products to tiles and index in database
 """
 import logging
-import os
 
 import click
-import rasterio
-import six
 
 from . import options
 from .cliutils import config_to_resources, Echoer
@@ -14,7 +11,7 @@ from .. import products, db
 from .._util import decompress_to, include_bands
 from ..errors import FillValueException
 from ..geoutils import reproject_as_needed, reproject_bounds
-from ..stores import STORAGE_TYPES
+from ..stores import destination_path, STORAGE_TYPES
 
 logger = logging.getLogger('tilezilla')
 echoer = Echoer(message_indent=0)
@@ -24,7 +21,6 @@ def ingest_source(config, source, overwrite=False):
     """ Ingest (tile and ingest) a source
     """
     spec, storage_name, database, datacube = config_to_resources(config)
-
 
     with decompress_to(source) as tmpdir:
         # Find product and get dataset database resource
@@ -49,9 +45,6 @@ def ingest_source(config, source, overwrite=False):
             for tile_id in tiles_id
         ]
 
-        tile_root = os.path.join(config['store']['root'],
-                                 product.description,
-                                 config['store']['tile_dirpattern'])
         for band in desired_bands:
             with reproject_as_needed(band.src, spec) as src:
                 band.src = src
@@ -68,7 +61,7 @@ def ingest_source(config, source, overwrite=False):
                             continue
 
                     # Setup dataset store
-                    path = tile.str_format(tile_root)
+                    path = destination_path(config, tile, product)
                     store_cls = STORAGE_TYPES[config['store']['name']]
                     store = store_cls(path, tile,
                                       meta_options=config['store']['co'])

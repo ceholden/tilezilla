@@ -7,6 +7,7 @@ import rasterio
 
 from ._util import lazy_property
 
+
 #: easy access container for a bounding box
 BoundingBox = namedtuple('BoundingBox', ('left', 'bottom', 'right', 'top'))
 
