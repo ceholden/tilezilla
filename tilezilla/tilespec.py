@@ -153,27 +153,6 @@ class Tile(object):
         return affine.Affine(self.tilespec.res[0], 0, self.bounds.left,
                              0, -self.tilespec.res[1], self.bounds.top)
 
-    @property
-    def geom_geojson(self):
-        """ Tile geometry in GeoJSON format
-        """
-        geojson = """
-        {{
-            "geometry":
-            {{
-                "coordinates": [[
-                    [{top}, {left}],
-                    [{top}, {right}],
-                    [{bottom}, {right}],
-                    [{bottom}, {left}],
-                    [{top}, {left}]
-                ]],
-                "type": "Polygon"
-            }}
-        }}
-        """.format(**self.bounds._asdict())
-        return json.loads(geojson)
-
     def str_format(self, s):
         """ Return a string .format'd with tile attributes
 
