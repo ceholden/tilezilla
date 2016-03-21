@@ -99,19 +99,18 @@ def miniaturize(source, destination, offset, size,
                         'height': sy,
                         'count': 1,
                     })
-                    if dst_crs:
-                        affine, width, height = calculate_default_transform(
-                            src_ds.crs, dst_crs, sx, sy,
-                            *src_ds.window_bounds(window),
-                            src_ds.res
-                        )
-                        meta.update({
-                            'affine': affine,
-                            'transform': affine,
-                            'width': width,
-                            'height': height,
-                            'crs': dst_crs
-                        })
+                    affine, width, height = calculate_default_transform(
+                        src_ds.crs, dst_crs or src_ds.crs, sx, sy,
+                        *src_ds.window_bounds(window),
+                        src_ds.res
+                    )
+                    meta.update({
+                        'affine': affine,
+                        'transform': affine,
+                        'width': width,
+                        'height': height,
+                        'crs': dst_crs or src_ds.crs
+                    })
                     with temp_file() as dst:
                         with rasterio.open(dst, 'w', **meta) as dst_ds:
                             if dst_crs:
