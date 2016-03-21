@@ -1,4 +1,9 @@
 """ Export multiband imagery in VRT compatibility format
+
+NOTES:
+    * Obviously works with GeoTIFF store format
+    * Seems to work with NetCDF format as long as the NetCDF dataset is
+      properly georeferenced (i.e., use clover to make sure it is!)
 """
 from collections import defaultdict
 import os

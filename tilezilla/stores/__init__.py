@@ -4,11 +4,15 @@ import inspect
 import os
 
 from .geotiff import GeoTIFFStore
+from .vrt import VRT
 
 STORAGE_TYPES = {
     'GeoTIFF': GeoTIFFStore,
     # TODO: 'NetCDF': NetCDFStore
 }
+
+
+__all__ = [GeoTIFFStore, VRT]
 
 
 def destination_path(config, tile, product, root_override=None):
