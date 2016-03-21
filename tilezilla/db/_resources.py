@@ -55,12 +55,11 @@ class DatacubeResource(object):
 
 
 class DatasetResource(object):
-    """ Individual dataset product observations per collection and tile
+    """ Individual dataset product observations
     """
-    def __init__(self, db, datacube, collection_name):
+    def __init__(self, db, datacube):
         self.db = db
         self.datacube = datacube
-        self.collection = collection_name
 
     def get_product(self, id_):
         """ Get product by ``id``

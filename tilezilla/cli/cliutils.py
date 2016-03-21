@@ -8,16 +8,16 @@ def config_to_resources(config):
         config (dict): `tilezilla` configuration
 
     Return:
-        tuple[TileSpec, str, Database, DatacubeResource]: A
-            collection of resources for checking, indexing, and tiling
-            data
+        tuple[TileSpec, str, Database, DatacubeResource, DatasetResource]: A
+            collection of resources for checking, indexing, and tiling data
     """
-    from ..db import Database, DatacubeResource
+    from ..db import Database, DatacubeResource, DatasetResource
     spec = config['tilespec']
     store_name = config['store']['name']
     db = Database.from_config(config['database'])
     datacube = DatacubeResource(db, spec, store_name)
-    return spec, store_name, db, datacube
+    dataset = DatasetResource(db, datacube)
+    return spec, store_name, db, datacube, dataset
 
 
 class Echoer(object):

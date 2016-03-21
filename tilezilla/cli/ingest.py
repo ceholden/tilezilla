@@ -20,12 +20,11 @@ echoer = Echoer(message_indent=0)
 def ingest_source(config, source, overwrite=False):
     """ Ingest (tile and ingest) a source
     """
-    spec, storage_name, database, datacube = config_to_resources(config)
+    spec, storage_name, database, cube, dataset = config_to_resources(config)
 
     with decompress_to(source) as tmpdir:
         # Find product and get dataset database resource
         product = products.registry.sniff_product_type(tmpdir)
-        dataset = db.DatasetResource(database, datacube, product.description)
         collection_name = product.description
 
         # Subset bands
@@ -36,7 +35,7 @@ def ingest_source(config, source, overwrite=False):
         # Find tiles for product & IDs of these tiles in database
         tiles = list(spec.bounds_to_tile(bbox))
         tiles_id = [
-            datacube.ensure_tile(
+            cube.ensure_tile(
                 collection_name, tile.horizontal, tile.vertical)
             for tile in tiles
         ]
