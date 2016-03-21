@@ -24,17 +24,14 @@ def ingest_source(config, source, overwrite=False):
     """ Ingest (tile and ingest) a source
     """
     spec, storage_name, database, datacube = config_to_resources(config)
-    # TODO: config file should describe the basename of tile directories
-    # TODO: document choice of where these variables come from (Tile)
-    # TODO: parametrize zfill
-    tile_root = os.path.join(config['store']['root'],
-                             config['store']['tile_dirpattern'])
+
 
     with decompress_to(source) as tmpdir:
         # Find product and get dataset database resource
         product = products.registry.sniff_product_type(tmpdir)
         dataset = db.DatasetResource(database, datacube, product.description)
         collection_name = product.description
+
         # Subset bands
         desired_bands = _include_bands_from_config(config, product.bands)
 
@@ -52,6 +49,9 @@ def ingest_source(config, source, overwrite=False):
             for tile_id in tiles_id
         ]
 
+        tile_root = os.path.join(config['store']['root'],
+                                 product.description,
+                                 config['store']['tile_dirpattern'])
         for band in desired_bands:
             with reproject_as_needed(band.src, spec) as src:
                 band.src = src
