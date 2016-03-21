@@ -10,3 +10,7 @@ class FillValueException(Exception):
     """ All of a tile is "fill" values
     """
     pass
+
+
+class ProductNotFoundException(Exception):
+    pass
