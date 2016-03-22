@@ -3,25 +3,26 @@
 import click
 
 from . import options
-from ..db import TABLES, Database
 
 
 @click.group(help='Database information and queries')
 @options.pass_config
 @click.pass_context
 def db(ctx, config):
+    from ..db import Database
     # Stick in context for sub-commands
     ctx.obj['db'] = Database.from_config(config['database'])
 
 
 @db.command(short_help='Print database information')
+@options.opt_db_filter
 @options.arg_db_table
 @options.pass_db
 @options.pass_config
-def info(config, db, table):
-    """ Print table information, like the table fields
+def info(config, db, table, filter_):
+    """ Print table summary information
     """
-    print('Info: "{}"'.format(table))
+    click.echo('Info: {}'.format(table))
 
 
 @db.command(short_help='Search database')
@@ -35,7 +36,7 @@ def search(config, db, filter_, table):
     Example: search the "product" table for a given product ID
     """
     print('Search: "{}" where:\n{}'.format(table, filter_))
-    query = db.session.query(TABLES[table]).filter_by(**filter_)
+    query = db.session.query(table).filter_by(**filter_)
     for query_row in query:
         from IPython.core.debugger import Pdb; Pdb().set_trace()
         print(query_row)

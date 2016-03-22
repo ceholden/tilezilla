@@ -2,8 +2,6 @@ import functools
 
 import click
 
-from ..db import TABLES
-
 
 # PASS
 def pass_config(f):
@@ -57,6 +55,16 @@ def callback_dict(ctx, param, value):
         return d
 
 
+def callback_db_table(ctx, param, value):
+    """ Return database table class
+    """
+    from ..db import TABLES
+    if value not in TABLES.keys():
+        raise click.BadParameter('Unknown table ({}). Available tables are: {}'
+                                 .format(value, TABLES.keys()), param=param)
+    return TABLES[value]
+
+
 # ARGUMENTS
 arg_config = click.argument(
     'config',
@@ -67,10 +75,13 @@ arg_sources = click.argument(
     nargs=-1,
     type=click.Path(readable=True, resolve_path=True, dir_okay=False))
 
-arg_db_table = click.argument(
-    'table',
-    type=click.Choice(TABLES.keys())
-)
+def arg_db_table(f):
+    from ..db import TABLES
+    return click.argument(
+        'table',
+        type=click.Choice(TABLES.keys()),
+        callback=callback_db_table
+    )(f)
 
 # OPTIONS
 def opt_config_file(f):
