@@ -6,7 +6,6 @@ import click_plugins
 
 from . import options
 from .. import __version__
-from ..config import parse_config
 
 _context = dict(
     token_normalize_func=lambda x: x.lower(),
