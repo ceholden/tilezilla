@@ -129,6 +129,14 @@ class DatasetResource(object):
             return None
         return [self._make_band(b) for b in prod.bands]
 
+    def get_band(self, _id):
+        """ Return Band by ID
+        """
+        band = self.db.get_band(_id)
+        if not band:
+            return None
+        return self._make_band(band)
+
     def ensure_band(self, product_id, band):
         """ Add a band to index, creating if necessary
 
