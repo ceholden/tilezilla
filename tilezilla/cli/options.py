@@ -2,6 +2,8 @@ import functools
 
 import click
 
+from .. import multiprocess
+
 
 # PASS
 def pass_config(f):
@@ -132,3 +134,21 @@ opt_overwrite = click.option(
     '--overwrite',
     is_flag=True,
     help='Overwrite destination file')
+
+def opt_multiprocess_method(f):
+    def _callback(ctx, param, value):
+        return multiprocess.get_executor(value, ctx.params['njob'])
+    return click.option(
+        '--parallel',
+        type=click.Choice(multiprocess.MULTIPROC_METHODS),
+        default='serial',
+        callback=_callback,
+        help='Method of parallel execution')(f)
+
+opt_multiprocess_njob = click.option(
+        '-j', '--njob',
+        type=int,
+        default=1,
+        is_eager=True,
+        help='Number of jobs for parallel execution'
+    )
