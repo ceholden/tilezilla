@@ -2,26 +2,29 @@
 """ CLI to process imagery products to tiles and index in database
 """
 import logging
+import os
 
 import click
 
 from . import options
 from .cliutils import config_to_resources, Echoer
-from .. import products, db
+from .. import products
 from .._util import decompress_to, include_bands
 from ..errors import FillValueException
 from ..geoutils import reproject_as_needed, reproject_bounds
 from ..stores import destination_path, STORAGE_TYPES
 
 logger = logging.getLogger('tilezilla')
-echoer = Echoer(message_indent=0)
 
 
-def ingest_source(config, source, overwrite=False):
+def ingest_source(task):
     """ Ingest (tile and ingest) a source
     """
+    echoer = Echoer(message_indent=0, prefix='PID: {} '.format(os.getpid()))
+    config, source, overwrite = task
     spec, storage_name, database, cube, dataset = config_to_resources(config)
 
+    product_ids, band_ids = [], []
     with decompress_to(source) as tmpdir:
         # Find product and get dataset database resource
         product = products.registry.sniff_product_type(tmpdir)
@@ -79,6 +82,7 @@ def ingest_source(config, source, overwrite=False):
                     if tile_prod_query:
                         # TODO: we need to handle deleting/transfering existing
                         #       bands over maybe overwriting product
+                        product_id = tile_prod_query.id
                         band_id = dataset.update_band(tile_prod_query.id, band)
                     else:
                         product_id = dataset.ensure_product(tile_id, product)
@@ -90,6 +94,10 @@ def ingest_source(config, source, overwrite=False):
                     for md_name in product.metadata_files:
                         store.store_file(product,
                                          str(product.metadata_files[md_name]))
+                    product_ids.append(product_id)
+                    band_ids.append(band_id)
+
+    return set(product_ids), set(band_ids)
 
 
 def _include_bands_from_config(config, bands):
@@ -111,12 +119,28 @@ def _include_bands_from_config(config, bands):
 
 
 @click.command(short_help='Ingest known products into tile dataset format')
+@options.opt_multiprocess_method
+@options.opt_multiprocess_njob
+# TODO: allow progress to be sent to files by src instead of to stdout
 @click.option('--overwrite', is_flag=True,
               help='Overwriting existing tiled data')
 @options.arg_sources
 @options.pass_config
 @click.pass_context
-def ingest(ctx, config, sources, overwrite=False):
-    for source in sources:
-        echoer.info('Working on: {}'.format(source))
-        ingest_source(config, source, overwrite=overwrite)
+def ingest(ctx, config, sources, overwrite, parallel, njob):
+    echoer = Echoer()
+    echoer.process('Ingesting {} products'.format(len(sources)))
+
+    tasks = [(config, src, overwrite) for src in sources]
+    results = parallel.map(ingest_source, tasks)
+
+    product_ids = []
+    band_ids = []
+    for result in results:
+        product_ids.extend(result[0])
+        band_ids.extend(result[1])
+
+    echoer.process('Indexed {nprod} products to {ntile} tiles of {nband} bands'
+                   .format(nprod=len(sources),
+                           ntile=len(set(product_ids)),
+                           nband=len(band_ids)))
