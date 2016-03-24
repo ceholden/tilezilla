@@ -108,6 +108,8 @@ class DatasetResource(object):
             platform=query.platform,
             instrument=query.instrument,
             bounds=BoundingBox(*query.ref_tile.bounds),
+            metadata=query.metadata_,
+            metadata_files=query.metadata_files_,
             bands=bands
         )
 
