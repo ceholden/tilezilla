@@ -20,6 +20,7 @@ def config_to_resources(config):
     return spec, store_name, db, datacube, dataset
 
 
+
 class Echoer(object):
     """ Stylistic wrapper around click.echo for communicating with user
 
@@ -39,9 +40,9 @@ class Echoer(object):
 
     """
 
-    def __init__(self, message_indent=0, file='stdout', err=False):
+    def __init__(self, message_indent=0, prefix='', file='stdout', err=False):
         self.message_indent = message_indent
-
+        self.prefix = prefix
         if file == 'stdout':
             self.file = None
         elif file == 'stderr':
@@ -58,7 +59,7 @@ class Echoer(object):
         Process messages are prepended with "==> "
         """
         msg = click.style(msg, **kwargs)
-        pre = click.style('==> ' + ' ' * self.message_indent,
+        pre = click.style(self.prefix + '==> ' + ' ' * self.message_indent,
                           fg='blue', bold=True)
 
         click.echo(pre + msg, file=self.file, err=self.err)
@@ -69,7 +70,8 @@ class Echoer(object):
         Item messages are prepended with "-   "
         """
         msg = click.style(msg, fg='green', bold=True, **kwargs)
-        pre = click.style('-   ' + ' ' * self.message_indent, fg='green')
+        pre = click.style(self.prefix + '-   ' + ' ' * self.message_indent,
+                          fg='green')
 
         click.echo(pre + msg, file=self.file, err=self.err)
 
@@ -79,7 +81,7 @@ class Echoer(object):
         Information messages a prepended with "*   "
         """
         msg = click.style(msg, **kwargs)
-        pre = click.style('*   ' + ' ' * self.message_indent,
+        pre = click.style(self.prefix + '*   ' + ' ' * self.message_indent,
                           bold=True)
 
         click.echo(pre + msg, file=self.file, err=self.err)
@@ -90,7 +92,7 @@ class Echoer(object):
         Warning messages are prepended with "X   "
         """
         msg = click.style(msg, fg='yellow', **kwargs)
-        pre = click.style('X   ' + ' ' * self.message_indent,
+        pre = click.style(self.prefix + 'X   ' + ' ' * self.message_indent,
                           fg='yellow', bold=True)
 
         click.echo(pre + msg, file=self.file, err=self.err)
@@ -101,7 +103,7 @@ class Echoer(object):
         Error messages are prepended with "X   "
         """
         msg = click.style(msg, fg='red', **kwargs)
-        pre = click.style('X   ' + ' ' * self.message_indent,
+        pre = click.style(self.prefix + 'X   ' + ' ' * self.message_indent,
                           fg='red', bold=True)
 
         click.echo(pre + msg, file=self.file, err=self.err)
