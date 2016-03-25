@@ -20,7 +20,6 @@ def config_to_resources(config):
     return spec, store_name, db, datacube, dataset
 
 
-
 class Echoer(object):
     """ Stylistic wrapper around click.echo for communicating with user
 

@@ -28,10 +28,14 @@ echoer = Echoer(message_indent=0)
 @click.argument('destination',
                 type=click.Path(file_okay=False, resolve_path=True,
                                 writable=True))
-@click.argument('product_ids', type=int, nargs=-1)
+@click.argument('product_ids', type=int, required=False, nargs=-1,
+                callback=options.callback_from_stdin)
 @options.pass_config
 def spew(config, destination, product_ids, bands, regex):
     """ Export tiled products to mutli-band VRTs for a given product ID
+
+    Product IDs can be passed either as input arguments or through `stdin`
+    using a pipe.
 
     By default the configuration file will be used to determine what bands are
     exported into the multi-band VRT format. If `--bands` is specified,
@@ -40,7 +44,7 @@ def spew(config, destination, product_ids, bands, regex):
     """
     from .. import stores
     echoer.process('Beginning export to VRT for {n} products'
-                   .format(len(product_ids)))
+                   .format(n=len(product_ids)))
     spec, storage_name, database, cube, dataset = config_to_resources(config)
     mkdir_p(destination)
 
@@ -61,7 +65,7 @@ def spew(config, destination, product_ids, bands, regex):
         echoer.item('Exporting product for tile: {collect}{tile}{prod}'.format(
             collect=product.description,
             tile='h{}v{}'.format(tile.horizontal, tile.vertical),
-            product.timeseries_id
+            prod=product.timeseries_id
         ))
 
         desired_bands = include_bands(product.bands, include_filter,

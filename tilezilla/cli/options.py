@@ -67,6 +67,23 @@ def callback_db_table(ctx, param, value):
     return TABLES[value]
 
 
+def callback_from_stdin(ctx, param, value):
+    """ If `value` is empty, try to parse this arg from `stdin`
+    """
+    if not value:
+        stdin = click.get_text_stream('stdin')
+        value = next(stdin)
+        if not value:
+            _type = ('argument' if isinstance(param, click.core.Argument)
+                     else 'option')
+            raise click.BadParameter(
+                'Must specify parameter via stdin or as {}'.format(_type),
+                param=param)
+        value = [v for v in value.replace('\n', ' ').split(' ') if v]
+        return param.process_value(ctx, value)
+    return value
+
+
 # ARGUMENTS
 arg_config = click.argument(
     'config',
