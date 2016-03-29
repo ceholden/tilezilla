@@ -25,6 +25,7 @@ def ingest_source(task):
     spec, storage_name, database, cube, dataset = config_to_resources(config)
 
     product_ids, band_ids = [], []
+    echoer.process('Decompressing: {}'.format(os.path.basename(source)))
     with decompress_to(source) as tmpdir:
         # Find product and get dataset database resource
         product = products.registry.sniff_product_type(tmpdir)
@@ -48,6 +49,7 @@ def ingest_source(task):
         ]
 
         for band in desired_bands:
+            echoer.process('Reprojecting band: {}'.format(band))
             with reproject_as_needed(band.src, spec) as src:
                 band.src = src
                 echoer.item('Tiling: {}'.format(band.long_name))

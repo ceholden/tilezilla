@@ -9,7 +9,8 @@ from .. import __version__
 
 _context = dict(
     token_normalize_func=lambda x: x.lower(),
-    help_option_names=['--help', '-h']
+    help_option_names=['--help', '-h'],
+    auto_envvar_prefix='TILEZILLA'
 )
 
 
