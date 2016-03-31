@@ -1,3 +1,5 @@
+import logging
+
 import click
 
 
@@ -21,88 +23,68 @@ def config_to_resources(config):
 
 
 class Echoer(object):
-    """ Stylistic wrapper around click.echo for communicating with user
+    """ Stylistic wrapper around loggers for communicating with user
 
     Communication methods:
 
-        1. process: announce beginning of some process
-        2. item: progress within a process for an item
-        3. info: general information
-        4. warnings: warnings, less severe than errors
-        5. error: errors
-
-    Args:
-      message_indent (int): indent messages beyond process/item/info indicator
-        by a number of spaces (default: 0)
-      file (str): write output to a file (default: 'stdout')
-      err (bool): if True and file is 'stdout', write to 'stderr' instead
+        1. process: announce beginning of some process (logging.INFO)
+        2. item: progress within a process for an item (logging.INFO)
+        3. info: general information (logging.INFO)
+        4. warnings: warnings, less severe than errors (logging.WARNING)
+        5. error: errors (logging.ERROR)
 
     """
+    STYLE = {
+        'process': '==>'.ljust(1),
+        'item': '-'.ljust(7),
+        'info': '*'.ljust(3),
+        'warning': 'X'.ljust(3),
+        'error': 'X'.ljust(3)
+    }
 
-    def __init__(self, message_indent=0, prefix='', file='stdout', err=False):
-        self.message_indent = message_indent
+    def __init__(self, logger=None, prefix=''):
+        self.logger = logger or logging.getLogger(logger)
         self.prefix = prefix
-        if file == 'stdout':
-            self.file = None
-        elif file == 'stderr':
-            self.file = None
-            err = True
-        else:
-            self.file = file
-
-        self.err = err
 
     def process(self, msg, **kwargs):
         """ Print a message about a process
-
-        Process messages are prepended with "==> "
         """
         msg = click.style(msg, **kwargs)
-        pre = click.style(self.prefix + '==> ' + ' ' * self.message_indent,
+        pre = click.style(self.prefix + self.STYLE['process'],
                           fg='blue', bold=True)
 
-        click.echo(pre + msg, file=self.file, err=self.err)
+        self.logger.info(pre + msg)
 
     def item(self, msg, **kwargs):
         """ Print a progress message for an  item
-
-        Item messages are prepended with "-   "
         """
-        msg = click.style(msg, fg='green', bold=True, **kwargs)
-        pre = click.style(self.prefix + '-   ' + ' ' * self.message_indent,
-                          fg='green')
+        msg = click.style(msg, **kwargs)
+        pre = click.style(self.prefix + self.STYLE['item'], fg='green')
 
-        click.echo(pre + msg, file=self.file, err=self.err)
+        self.logger.info(pre + msg)
 
     def info(self, msg, fg='black', **kwargs):
         """ Print an info message
-
-        Information messages a prepended with "*   "
         """
         msg = click.style(msg, **kwargs)
-        pre = click.style(self.prefix + '*   ' + ' ' * self.message_indent,
-                          bold=True)
+        pre = click.style(self.prefix + self.STYLE['info'], bold=True)
 
-        click.echo(pre + msg, file=self.file, err=self.err)
+        self.logger.info(pre + msg)
 
     def warning(self, msg, fg='red', **kwargs):
         """ Print a warning message
-
-        Warning messages are prepended with "X   "
         """
         msg = click.style(msg, fg='yellow', **kwargs)
-        pre = click.style(self.prefix + 'X   ' + ' ' * self.message_indent,
+        pre = click.style(self.prefix + self.STYLE['warning'],
                           fg='yellow', bold=True)
 
-        click.echo(pre + msg, file=self.file, err=self.err)
+        self.logger.warning(pre + msg)
 
     def error(self, msg, fg='red', **kwargs):
         """ Print an error message
-
-        Error messages are prepended with "X   "
         """
-        msg = click.style(msg, fg='red', **kwargs)
-        pre = click.style(self.prefix + 'X   ' + ' ' * self.message_indent,
+        msg = click.style(msg, **kwargs)
+        pre = click.style(self.prefix + self.STYLE['error'],
                           fg='red', bold=True)
 
-        click.echo(pre + msg, file=self.file, err=self.err)
+        self.logger.error(pre + msg)
