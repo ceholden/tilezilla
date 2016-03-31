@@ -19,6 +19,7 @@ dependencies:
     - jsonschema>=2.4.0
     # metadata parsing
     - beautifulsoup4
+    - lxml
     # plotting
     - matplotlib>=1.5.1
     # Required for "clover" -- see below
