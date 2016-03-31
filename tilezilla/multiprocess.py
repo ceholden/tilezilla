@@ -59,6 +59,23 @@ class SerialExecutor(object):
     """
     map = map
 
+    def submit(self, func, *args, **kwargs):
+        return func(*args, **kwargs)
+
+    @staticmethod
+    def result(value):
+        return value
+
+    def shutdown(self, wait=True):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self):
+        self.shutdown()
+        return False
+
 
 def get_executor(executor, njob):
     """ Return an instance of a execution mapper
