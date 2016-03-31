@@ -2,14 +2,13 @@
 name: tilezilla
 channels:
     # they nicely build rasterio for us
-    - ioos
+    - conda-forge
 dependencies:
     # base
     - numpy>=1.10.0
     # geographic data packages
     - rasterio>=0.31.0
     - gdal
-    - libgdal
     - shapely>=1.5.13
     - netcdf4
     # database
@@ -36,6 +35,6 @@ dependencies:
         - sqlalchemy-utils
         # compatibility with Python2
         - pathlib>=1.0.1
-        - six==1.10.0
+        - six>=1.10.0
         # clover -- used for CRS translation "NetCDF CF" <-> "GDAL/Proj4"
         - git+git://github.com/consbio/clover.git
