@@ -13,21 +13,33 @@ _context = dict(
     auto_envvar_prefix='TILEZILLA'
 )
 
+LOG_FORMAT = '%(asctime)s:%(levelname)s:%(message)s'
+LOG_DATE_FORMAT = '%H:%M:%S'
+
 
 @click_plugins.with_plugins(ep for ep in
                             iter_entry_points('tilez.commands'))
 @click.group(help='tilezilla command line interface',
              context_settings=_context)
 @options.opt_config_file
-@click.option('--verbose', '-v', is_flag=True, help='Be verbose')
-@click.option('--quiet', '-q', is_flag=True, help='Be quiet')
+@click.option('--verbose', '-v', count=True, help='Be louder')
+@click.option('--quiet', '-q', count=True, help='Be quieter')
 @click.version_option(__version__)
 @click.pass_context
 def cli(ctx, verbose, quiet):
-    # Logging config
-    logging.basicConfig()
-    logger = logging.getLogger('tilezilla')
-    if verbose:
-        logger.setLevel(logging.DEBUG)
-    if quiet:
-        logger.setLevel(logging.WARNING)
+    verbosity = verbose - quiet
+    log_level = 20 - 10 * verbosity
+
+    # Logging config for tilez
+    logger = logging.getLogger('tilez')
+    formatter = logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT)
+    handler = logging.StreamHandler(click.get_text_stream('stdout'))
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    logger.setLevel(max(10, log_level))  # never below DEBUG (10)
+
+    # Logging for main module
+    main_logger = logging.getLogger('tilezilla')
+    if log_level <= 0:  # log_level=NOSET (0) sets main logger to debug
+        main_logger.setLevel(logging.DEBUG)
