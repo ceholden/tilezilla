@@ -6,26 +6,28 @@ import os
 
 import click
 
-from . import options
-from .cliutils import config_to_resources, Echoer
-from .. import products
-from .._util import decompress_to, include_bands
+from . import cliutils, options
+from .. import multiprocess, products
+from .._util import decompress_to, include_bands, mkdir_p
 from ..errors import FillValueException
 from ..geoutils import reproject_as_needed, reproject_bounds
 from ..stores import destination_path, STORAGE_TYPES
-
-logger = logging.getLogger('tilezilla')
 
 
 def ingest_source(task):
     """ Ingest (tile and ingest) a source
     """
-    echoer = Echoer(message_indent=0, prefix='PID: {} '.format(os.getpid()))
-    config, source, overwrite = task
-    spec, storage_name, database, cube, dataset = config_to_resources(config)
+    config, source, overwrite, log_name = task
+
+    mlogger = multiprocess.get_logger_multiproc(name=os.path.basename(source),
+                                                filename=log_name)
+    echoer = cliutils.Echoer(logger=mlogger)
+
+    spec, storage_name, database, cube, dataset = (
+        cliutils.config_to_resources(config))
 
     product_ids, band_ids = [], []
-    echoer.process('Decompressing: {}'.format(os.path.basename(source)))
+    echoer.info('Decompressing: {}'.format(os.path.basename(source)))
     with decompress_to(source) as tmpdir:
         # Find product and get dataset database resource
         product = products.registry.sniff_product_type(tmpdir)
@@ -49,10 +51,10 @@ def ingest_source(task):
         ]
 
         for band in desired_bands:
-            echoer.process('Reprojecting band: {}'.format(band))
+            echoer.info('Reprojecting band: {}'.format(band))
             with reproject_as_needed(band.src, spec) as src:
                 band.src = src
-                echoer.item('Tiling: {}'.format(band.long_name))
+                echoer.process('Tiling: {}'.format(band.long_name))
                 for tile, tile_id, tile_prod_query in zip(tiles,
                                                           tiles_id,
                                                           tiles_product_query):
@@ -78,7 +80,6 @@ def ingest_source(task):
                         # TODO: skip tile but complain
                         continue
                     band.path = dst_path
-                    echoer.item('    saved to: {}'.format(dst_path))
 
                     # Update index with new product/band entry
                     if tile_prod_query:
@@ -98,6 +99,9 @@ def ingest_source(task):
                                          str(product.metadata_files[md_name]))
                     product_ids.append(product_id)
                     band_ids.append(band_id)
+
+                    echoer.item('Tiled band for tile h{}v{}'
+                                .format(tile.horizontal, tile.vertical))
 
     return set(product_ids), set(band_ids)
 
@@ -123,17 +127,27 @@ def _include_bands_from_config(config, bands):
 @click.command(short_help='Ingest known products into tile dataset format')
 @options.opt_multiprocess_method
 @options.opt_multiprocess_njob
-# TODO: allow progress to be sent to files by src instead of to stdout
+@click.option('--log_dir', 'log_dir',
+              type=click.Path(exists=False, dir_okay=True, writable=True,
+                              resolve_path=True),
+              help='Log ingests to this directory (otherwise to stdout)')
 @click.option('--overwrite', is_flag=True,
               help='Overwriting existing tiled data')
 @options.arg_sources
 @options.pass_config
 @click.pass_context
-def ingest(ctx, config, sources, overwrite, parallel, njob):
-    echoer = Echoer()
-    echoer.process('Ingesting {} products'.format(len(sources)))
+def ingest(ctx, config, sources, overwrite, log_dir, njob, parallel):
+    logger = logging.getLogger('tilez')
+    echoer = cliutils.Echoer(logger)
+    echoer.info('Ingesting {} products'.format(len(sources)))
 
-    tasks = [(config, src, overwrite) for src in sources]
+    if log_dir:
+        mkdir_p(log_dir)
+
+    tasks = [(config, src, overwrite, log_dir and
+              os.path.join(log_dir, os.path.basename(src) + '.log'))
+             for src in sources]
+
     results = parallel.map(ingest_source, tasks)
 
     product_ids = []
