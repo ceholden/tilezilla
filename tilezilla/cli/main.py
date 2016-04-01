@@ -26,7 +26,7 @@ LOG_DATE_FORMAT = '%H:%M:%S'
 @click.option('--quiet', '-q', count=True, help='Be quieter')
 @click.version_option(__version__)
 @click.pass_context
-def cli(ctx, verbose, quiet):
+def cli(ctx, config_file, verbose, quiet):
     verbosity = verbose - quiet
     log_level = 20 - 10 * verbosity
 
@@ -43,3 +43,9 @@ def cli(ctx, verbose, quiet):
     main_logger = logging.getLogger('tilezilla')
     if log_level <= 0:  # log_level=NOSET (0) sets main logger to debug
         main_logger.setLevel(logging.DEBUG)
+
+    # Parse config
+    ctx.obj = ctx.obj or {}
+    if config_file:
+        from ..config import parse_config
+        ctx.obj['config'] = parse_config(config_file)

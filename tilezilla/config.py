@@ -9,12 +9,10 @@ import six
 import yaml
 
 from .errors import ConfigException
-from .tilespec import TileSpec, TILESPECS
 
 logger = logging.getLogger('tilezilla')
 
 
-# TODO: load schema & validate
 def parse_config(path):
     """ Parse a configuration file and return it as a dict
 
@@ -56,6 +54,8 @@ def _parse_database(cfg):
 
 
 def _parse_tilespec(cfg):
+    from .tilespec import TileSpec, TILESPECS
+
     _tilespec = cfg['tilespec']
     if isinstance(_tilespec, str):
         if _tilespec not in TILESPECS:
