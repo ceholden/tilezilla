@@ -1,8 +1,11 @@
 """ Database query operations
 """
-import click
+import logging
 
-from . import options
+import click
+import six
+
+from . import cliutils, options
 
 
 def _db_from_ctx(ctx):
@@ -30,12 +33,39 @@ def db(ctx):
 def info(ctx, table, filter_):
     """ Print table summary information
     """
+    import sqlalchemy_utils as sau
     db = _db_from_ctx(ctx)
+    echoer = cliutils.Echoer(logging.getLogger('tilez'))
 
-    click.echo('Information about: {}'.format(table))
+    echoer.info('Information about: {}'.format(table))
     query = db.session.query(table).filter_by(**filter_)
 
-    click.echo('Number of entries: {}'.format(query.count()))
+    echoer.process('Number of entries: {}'.format(query.count()))
+
+    # Diagnostic info about table
+    template = '{idx: <10} {name: <20}{type: <15}'
+
+    echoer.process('Enumerating columns in table: {}'.format(table))
+    echoer.item('{idx: <10} {name: <20}{type: <30}'
+                .format(idx='COLUMN #', name='NAME', type='TYPE'),
+                bold=True, underline=True)
+    for idx, col in enumerate(sau.get_columns(table).values()):
+        echoer.item(template.format(**{
+            'idx': 'Col {0:02d}'.format(idx),
+            'name': '"{}"'.format(col.name),
+            'type': '{type} {pk}'.format(
+                type=col.type, pk='(PRIMARY KEY)' if col.primary_key else '')
+        }))
+
+    for idx, (name, col) in enumerate(six.iteritems(
+            sau.get_hybrid_properties(table))):
+        echoer.item(template.format(**{
+            'idx': 'HYBRID {0:02d}'.format(idx),
+            'name': '"{}"'.format(name),
+            'type': '?'
+        }))
+
+    from IPython.core.debugger import Pdb; Pdb().set_trace()
 
 
 @db.command(short_help='Search database')
