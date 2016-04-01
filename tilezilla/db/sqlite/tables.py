@@ -82,6 +82,18 @@ class TableProduct(Base):
     # Reference to individual band observations
     bands = sa.orm.relationship('TableBand', backref='ref_product')
 
+    # @sau.aggregated('bands', sa.Column(sa.Integer))
+    # def n_bands(self):
+    #     return sa.func.count('1')
+    @sa.ext.hybrid.hybrid_property
+    def n_bands(self):
+        return len(self.bands)
+
+    @n_bands.expression
+    def n_bands(cls):
+        return (sa.select([sa.func.count(TableBand.id)]).
+                where(TableBand.ref_product_id == cls.id).
+                label('n_bands'))
 
 class TableBand(Base):
     __tablename__ = 'band'
