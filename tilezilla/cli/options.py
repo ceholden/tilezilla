@@ -9,9 +9,11 @@ from .. import multiprocess
 def callback_dict(ctx, param, value):
     """ Call back for dict style arguments (e.g., KEY=VALUE)
     """
+    # TODO: support KEY(operator)VALUE where operator in > >= = <= <
     if not value:
         return {}
     else:
+        import arrow
         d = {}
         for val in value:
             if '=' not in val:
@@ -20,7 +22,13 @@ def callback_dict(ctx, param, value):
                         p=param, v=value))
             else:
                 k, v = val.split('=', 1)
-                d[k] = v
+                _v = v
+                for xform in (arrow.get, float, int):
+                    try:
+                        _v = xform(v)
+                    except:
+                        pass
+                d[k] = _v
         return d
 
 
