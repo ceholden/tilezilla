@@ -35,11 +35,11 @@ class Echoer(object):
 
     """
     STYLE = {
-        'process': '==>'.ljust(1),
-        'item': '-'.ljust(7),
-        'info': '*'.ljust(3),
-        'warning': 'X'.ljust(3),
-        'error': 'X'.ljust(3)
+        'process': '==>'.ljust(4),
+        'item': '-'.ljust(8),
+        'info': '*'.ljust(4),
+        'warning': 'X'.ljust(4),
+        'error': 'X'.ljust(4)
     }
 
     def __init__(self, logger=None, prefix=''):
