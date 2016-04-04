@@ -92,9 +92,9 @@ opt_config_file = click.option(
 opt_db_filter = click.option(
     '--filter', 'filter_',
     type=str,
-    callback=callback_dict,
+    # callback=callback_dict,
     multiple=True,
-    help='Filter TABLE by attr=value'
+    help='Filter TABLE by [ATTR][OPERATOR][VALUE...]'
 )
 
 opt_creation_options = click.option(

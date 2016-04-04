@@ -78,20 +78,18 @@ def search(ctx, filter_, table):
 
     Example: search the "product" table for a given product ID
     """
-    from ..db import convert_query_type
-
+    from ..db import construct_filter
     db = _db_from_ctx(ctx)
 
-    click.echo('Search: "{}" where:\n{}'.format(table, filter_))
+    click.secho('Searching table "{}" where:'.format(table.__tablename__),
+                fg='blue', bold=True)
+    for filter_item in filter_:
+        click.echo('    {}'.format(filter_item))
 
-    # Convert/cast filter query values as needed
-    from IPython.core.debugger import Pdb; Pdb().set_trace()
-    for k in filter_:
-        filter_[k] = convert_query_type(table, k, filter_[k])
-
-    query = db.session.query(table).filter(**filter_)
+    query = construct_filter(db.session.query(table), filter_).all()
+    click.secho('Results:', fg='red', bold=True)
     for query_row in query:
-        print(query_row)
+        click.echo(query_row)
 
 
 @db.command(short_help='Search database and return IDs')
