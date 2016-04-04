@@ -26,8 +26,8 @@ from .._util import include_bands, mkdir_p
                                 writable=True))
 @click.argument('product_ids', type=int, required=False, nargs=-1,
                 callback=options.callback_from_stdin)
-@options.pass_config
-def spew(config, destination, product_ids, bands, regex):
+@click.pass_context
+def spew(ctx, destination, product_ids, bands, regex):
     """ Export tiled products to mutli-band VRTs for a given product ID
 
     Product IDs can be passed either as input arguments or through `stdin`
@@ -38,6 +38,8 @@ def spew(config, destination, product_ids, bands, regex):
     the configuration file will be ignored and only bands specified by
     `--bands` will be exported.
     """
+    config = options.fetch_config(ctx)
+
     from .. import stores
     logger = logging.getLogger('tilez')
     echoer = cliutils.Echoer(logger)

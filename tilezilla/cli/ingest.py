@@ -136,16 +136,11 @@ def _include_bands_from_config(config, bands):
 @options.arg_sources
 @click.pass_context
 def ingest(ctx, sources, overwrite, log_dir, njob, parallel):
-    config = ctx.obj and ctx.obj.get('config', None)
-    if not config:
-        _opts = dict((o.name, o) for o in ctx.parent.command.params)
-        raise click.BadParameter('Must specify configuration file',
-                                 ctx=ctx.parent, param=_opts['config_file'])
-
+    config = options.fetch_config(ctx)
     logger = logging.getLogger('tilez')
     echoer = cliutils.Echoer(logger)
-    echoer.info('Ingesting {} products'.format(len(sources)))
 
+    echoer.info('Ingesting {} products'.format(len(sources)))
     if log_dir:
         mkdir_p(log_dir)
 

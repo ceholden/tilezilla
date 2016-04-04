@@ -5,6 +5,17 @@ import click
 from .. import multiprocess
 
 
+def fetch_config(ctx):
+    """ Fetch `config_file` from context
+    """
+    config = ctx.obj and ctx.obj.get('config', None)
+    if not config:
+        _opts = dict((o.name, o) for o in ctx.parent.command.params)
+        raise click.BadParameter('Must specify configuration file',
+                                 ctx=ctx.parent, param=_opts['config_file'])
+    return config
+
+
 # CALLBACKS
 def callback_dict(ctx, param, value):
     """ Call back for dict style arguments (e.g., KEY=VALUE)
