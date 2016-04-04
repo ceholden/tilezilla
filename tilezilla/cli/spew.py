@@ -8,14 +8,10 @@ import os
 import click
 import six
 
-from . import options
-from .cliutils import config_to_resources, Echoer
+from . import cliutils, options
 from ..errors import ProductNotFoundException
 from .._util import include_bands, mkdir_p
 
-
-logger = logging.getLogger('tilezilla')
-echoer = Echoer(message_indent=0)
 
 
 @click.command(short_help='Export tile dataset to other dataset format')
@@ -43,9 +39,13 @@ def spew(config, destination, product_ids, bands, regex):
     `--bands` will be exported.
     """
     from .. import stores
+    logger = logging.getLogger('tilez')
+    echoer = cliutils.Echoer(logger)
+
     echoer.process('Beginning export to VRT for {n} products'
                    .format(n=len(product_ids)))
-    spec, storage_name, database, cube, dataset = config_to_resources(config)
+    spec, storage_name, database, cube, dataset = (
+        cliutils.config_to_resources(config))
     mkdir_p(destination)
 
     if bands:
