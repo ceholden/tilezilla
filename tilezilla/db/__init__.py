@@ -29,7 +29,9 @@ TODO:
 """
 from .sqlite.tables import (TableTileSpec, TableTile, TableProduct, TableBand)
 from ._db import Database
+from ._queries import convert_query_type
 from ._resources import DatacubeResource, DatasetResource
+
 
 TABLES = {
     'tilespec': TableTileSpec,

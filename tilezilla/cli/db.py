@@ -4,6 +4,7 @@ import logging
 
 import click
 import six
+import sqlalchemy as sa
 
 from . import cliutils, options
 
@@ -77,12 +78,19 @@ def search(ctx, filter_, table):
 
     Example: search the "product" table for a given product ID
     """
+    from ..db import convert_query_type
+
     db = _db_from_ctx(ctx)
 
     click.echo('Search: "{}" where:\n{}'.format(table, filter_))
-    query = db.session.query(table).filter_by(**filter_)
+
+    # Convert/cast filter query values as needed
+    from IPython.core.debugger import Pdb; Pdb().set_trace()
+    for k in filter_:
+        filter_[k] = convert_query_type(table, k, filter_[k])
+
+    query = db.session.query(table).filter(**filter_)
     for query_row in query:
-        from IPython.core.debugger import Pdb; Pdb().set_trace()
         print(query_row)
 
 
