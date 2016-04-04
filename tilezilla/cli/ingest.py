@@ -134,9 +134,14 @@ def _include_bands_from_config(config, bands):
 @click.option('--overwrite', is_flag=True,
               help='Overwriting existing tiled data')
 @options.arg_sources
-@options.pass_config
 @click.pass_context
-def ingest(ctx, config, sources, overwrite, log_dir, njob, parallel):
+def ingest(ctx, sources, overwrite, log_dir, njob, parallel):
+    config = ctx.obj and ctx.obj.get('config', None)
+    if not config:
+        _opts = dict((o.name, o) for o in ctx.parent.command.params)
+        raise click.BadParameter('Must specify configuration file',
+                                 ctx=ctx.parent, param=_opts['config_file'])
+
     logger = logging.getLogger('tilez')
     echoer = cliutils.Echoer(logger)
     echoer.info('Ingesting {} products'.format(len(sources)))
