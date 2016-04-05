@@ -8,6 +8,7 @@ import pkgutil
 import affine
 import rasterio
 import rasterio.crs
+import shapely.geometry
 
 from . import geoutils
 from .core import BoundingBox
@@ -166,6 +167,25 @@ class Tile(object):
         """
         return affine.Affine(self.tilespec.res[0], 0, self.bounds.left,
                              0, -self.tilespec.res[1], self.bounds.top)
+
+    @property
+    def polygon(self):
+        """ shapely.geometry.Polygon: This tile's geometry
+        """
+        return geoutils.bounds_to_polygon(self.bounds)
+
+    @property
+    def geojson(self):
+        """ str: This tile's geometry and crs represented as GeoJSON
+        """
+        return {
+            'type': 'Feature',
+            'properties': {
+                'horizontal': self.horizontal,
+                'vertical': self.vertical
+            },
+            'geometry': shapely.geometry.mapping(self.polygon)
+        }
 
     def str_format(self, s):
         """ Return a string .format'd with tile attributes
