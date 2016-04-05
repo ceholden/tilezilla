@@ -107,6 +107,20 @@ class TileSpec(object):
             if geoutils.intersects_bounds(bounds, tile.bounds):
                 yield tile
 
+    def point_to_tile(self, point):
+        """ Return a :class:`Tile` containing a given point (x, y)
+
+        Args:
+            point (tuple): X/Y coordinates in tile specification's CRS
+        Returns:
+            Tile: The intersecting :class`Tile`
+        """
+        px, py = self.size[0] * self.res[0], self.size[1] * self.res[1]
+        _x = int((point[0] - self.ul[0]) // px)
+        _y = int((self.ul[1] - point[1]) // py)
+
+        return self._index_to_tile((_y, _x))
+
     def _frame_bounds(self, bounds):
         px, py = self.size[0] * self.res[0], self.size[1] * self.res[1]
         min_grid_x = int((bounds.left - self.ul[0]) // px)
