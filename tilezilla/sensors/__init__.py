@@ -1,18 +1,12 @@
 """ Sensor specific information or helper functions/classes
 """
 import json
+import os
 import pkgutil
 
 
-# Load sensor friendly names from pkgdata
-def retrieve_friendly_names():
-    """ Retrieve sensor 'friendly names'
+_SENSOR_FRIENDLY_NAMES_DATA = os.path.join('data', 'friendly_names.json')
 
-    Returns:
-        dict:
-    """
-    data = pkgutil.get_data('tilezilla', 'data/friendly_names.json').decode()
-    return json.loads(data)
-
-
-SENSOR_FRIENDLY_NAMES = retrieve_friendly_names()
+SENSOR_FRIENDLY_NAMES = json.loads(
+    pkgutil.get_data('tilezilla', _SENSOR_FRIENDLY_NAMES_DATA).decode()
+)
