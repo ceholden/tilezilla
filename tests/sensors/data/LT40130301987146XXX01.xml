@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<espa_metadata version="1.2"
+xmlns="http://espa.cr.usgs.gov/v1.2"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://espa.cr.usgs.gov/v1.2 http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_2.xsd">
+
+    <global_metadata>
+        <data_provider>USGS/EROS</data_provider>
+        <satellite>LANDSAT_4</satellite>
+        <instrument>TM</instrument>
+        <acquisition_date>1987-05-26</acquisition_date>
+        <scene_center_time>14:51:54.106081Z</scene_center_time>
+        <level1_production_date>2014-10-08T21:01:40Z</level1_production_date>
+        <solar_angles zenith="32.531204" azimuth="123.584846" units="degrees"/>
+        <wrs system="2" path="13" row="30"/>
+        <lpgs_metadata_file>LT40130301987146XXX01_MTL.txt</lpgs_metadata_file>
+        <corner location="UL" latitude="44.146430" longitude="-73.832160"/>
+        <corner location="LR" latitude="42.187930" longitude="-71.049890"/>
+        <bounding_coordinates>
+            <west>-73.867962</west>
+            <east>-70.925815</east>
+            <north>44.146569</north>
+            <south>42.187789</south>
+        </bounding_coordinates>
+        <projection_information projection="UTM" datum="WGS84" units="meters">
+            <corner_point location="UL" x="593400.000000" y="4888800.000000"/>
+            <corner_point location="LR" x="826200.000000" y="4678200.000000"/>
+            <grid_origin>CENTER</grid_origin>
+            <utm_proj_params>
+                <zone_code>18</zone_code>
+            </utm_proj_params>
+        </projection_information>
+        <orientation_angle>0.000000</orientation_angle>
+    </global_metadata>
+
+    <bands>
+        <band product="toa_bt" source="level1" name="toa_band6" category="image" data_type="INT16" nlines="7021" nsamps="7761" fill_value="-9999" saturate_value="20000" scale_factor="0.100000" add_offset="0.000000">
+            <short_name>LT4BT</short_name>
+            <long_name>band 6 brightness temperature</long_name>
+            <file_name>LT40130301987146XXX01_toa_band6.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>temperature (kelvin)</data_units>
+            <valid_range min="1500" max="3500"/>
+            <calibrated_nt>5.000000</calibrated_nt>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:29Z</production_date>
+        </band>
+        <band product="toa_bt" source="level1" name="toa_band6_qa" category="qa" data_type="UINT8" nlines="7021" nsamps="7761" fill_value="1">
+            <short_name>LT4BT</short_name>
+            <long_name>QA band</long_name>
+            <file_name>LT40130301987146XXX01_toa_band6_qa.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>bitmap</data_units>
+            <valid_range min="0" max="255"/>
+            <bitmap_description>
+                <bit num="0">Data Fill Flag (0 = valid data, 1 = invalid data)</bit>
+                <bit num="1">Band 1 Data Saturation Flag (not set)</bit>
+                <bit num="2">Band 2 Data Saturation Flag (not set)</bit>
+                <bit num="3">Band 3 Data Saturation Flag (not set)</bit>
+                <bit num="4">Band 4 Data Saturation Flag (not set)</bit>
+                <bit num="5">Band 5 Data Saturation Flag (not set)</bit>
+                <bit num="6">Band 6 Data Saturation Flag (0 = valid data, 1 = saturated data)</bit>
+                <bit num="7">Band 7 Data Saturation Flag (not set)</bit>
+            </bitmap_description>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:29Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_band1" category="image" data_type="INT16" nlines="7021" nsamps="7761" fill_value="-9999" saturate_value="20000" scale_factor="0.000100" add_offset="0.000000">
+            <short_name>LT4SR</short_name>
+            <long_name>band 1 surface reflectance</long_name>
+            <file_name>LT40130301987146XXX01_sr_band1.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>reflectance</data_units>
+            <valid_range min="-2000" max="16000"/>
+            <calibrated_nt>5.000000</calibrated_nt>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_band2" category="image" data_type="INT16" nlines="7021" nsamps="7761" fill_value="-9999" saturate_value="20000" scale_factor="0.000100" add_offset="0.000000">
+            <short_name>LT4SR</short_name>
+            <long_name>band 2 surface reflectance</long_name>
+            <file_name>LT40130301987146XXX01_sr_band2.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>reflectance</data_units>
+            <valid_range min="-2000" max="16000"/>
+            <calibrated_nt>5.000000</calibrated_nt>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_band3" category="image" data_type="INT16" nlines="7021" nsamps="7761" fill_value="-9999" saturate_value="20000" scale_factor="0.000100" add_offset="0.000000">
+            <short_name>LT4SR</short_name>
+            <long_name>band 3 surface reflectance</long_name>
+            <file_name>LT40130301987146XXX01_sr_band3.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>reflectance</data_units>
+            <valid_range min="-2000" max="16000"/>
+            <calibrated_nt>5.000000</calibrated_nt>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_band4" category="image" data_type="INT16" nlines="7021" nsamps="7761" fill_value="-9999" saturate_value="20000" scale_factor="0.000100" add_offset="0.000000">
+            <short_name>LT4SR</short_name>
+            <long_name>band 4 surface reflectance</long_name>
+            <file_name>LT40130301987146XXX01_sr_band4.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>reflectance</data_units>
+            <valid_range min="-2000" max="16000"/>
+            <calibrated_nt>5.000000</calibrated_nt>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_band5" category="image" data_type="INT16" nlines="7021" nsamps="7761" fill_value="-9999" saturate_value="20000" scale_factor="0.000100" add_offset="0.000000">
+            <short_name>LT4SR</short_name>
+            <long_name>band 5 surface reflectance</long_name>
+            <file_name>LT40130301987146XXX01_sr_band5.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>reflectance</data_units>
+            <valid_range min="-2000" max="16000"/>
+            <calibrated_nt>5.000000</calibrated_nt>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_band7" category="image" data_type="INT16" nlines="7021" nsamps="7761" fill_value="-9999" saturate_value="20000" scale_factor="0.000100" add_offset="0.000000">
+            <short_name>LT4SR</short_name>
+            <long_name>band 7 surface reflectance</long_name>
+            <file_name>LT40130301987146XXX01_sr_band7.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>reflectance</data_units>
+            <valid_range min="-2000" max="16000"/>
+            <calibrated_nt>5.000000</calibrated_nt>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_atmos_opacity" category="image" data_type="INT16" nlines="7021" nsamps="7761" fill_value="-9999" scale_factor="0.001000">
+            <short_name>LT4SR</short_name>
+            <long_name>atmos_opacity</long_name>
+            <file_name>LT40130301987146XXX01_sr_atmos_opacity.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>reflectance</data_units>
+            <valid_range min="-2000" max="16000"/>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_fill_qa" category="qa" data_type="UINT8" nlines="7021" nsamps="7761">
+            <short_name>LT4SR</short_name>
+            <long_name>fill_qa</long_name>
+            <file_name>LT40130301987146XXX01_sr_fill_qa.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>quality/feature classification</data_units>
+            <valid_range min="0" max="255"/>
+            <class_values>
+                <class num="0">not fill</class>
+                <class num="255">fill</class>
+            </class_values>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_ddv_qa" category="qa" data_type="UINT8" nlines="7021" nsamps="7761">
+            <short_name>LT4SR</short_name>
+            <long_name>ddv_qa</long_name>
+            <file_name>LT40130301987146XXX01_sr_ddv_qa.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>quality/feature classification</data_units>
+            <valid_range min="0" max="255"/>
+            <class_values>
+                <class num="0">not dark dense vegetation</class>
+                <class num="255">dark dense vegetation</class>
+            </class_values>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_cloud_qa" category="qa" data_type="UINT8" nlines="7021" nsamps="7761">
+            <short_name>LT4SR</short_name>
+            <long_name>cloud_qa</long_name>
+            <file_name>LT40130301987146XXX01_sr_cloud_qa.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>quality/feature classification</data_units>
+            <valid_range min="0" max="255"/>
+            <class_values>
+                <class num="0">not cloud</class>
+                <class num="255">cloud</class>
+            </class_values>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_cloud_shadow_qa" category="qa" data_type="UINT8" nlines="7021" nsamps="7761">
+            <short_name>LT4SR</short_name>
+            <long_name>cloud_shadow_qa</long_name>
+            <file_name>LT40130301987146XXX01_sr_cloud_shadow_qa.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>quality/feature classification</data_units>
+            <valid_range min="0" max="255"/>
+            <class_values>
+                <class num="0">not cloud shadow</class>
+                <class num="255">cloud shadow</class>
+            </class_values>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_snow_qa" category="qa" data_type="UINT8" nlines="7021" nsamps="7761">
+            <short_name>LT4SR</short_name>
+            <long_name>snow_qa</long_name>
+            <file_name>LT40130301987146XXX01_sr_snow_qa.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>quality/feature classification</data_units>
+            <valid_range min="0" max="255"/>
+            <class_values>
+                <class num="0">not snow</class>
+                <class num="255">snow</class>
+            </class_values>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_land_water_qa" category="qa" data_type="UINT8" nlines="7021" nsamps="7761">
+            <short_name>LT4SR</short_name>
+            <long_name>land_water_qa</long_name>
+            <file_name>LT40130301987146XXX01_sr_land_water_qa.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>quality/feature classification</data_units>
+            <valid_range min="0" max="255"/>
+            <class_values>
+                <class num="0">land</class>
+                <class num="255">water</class>
+            </class_values>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="sr_refl" source="toa_refl" name="sr_adjacent_cloud_qa" category="qa" data_type="UINT8" nlines="7021" nsamps="7761">
+            <short_name>LT4SR</short_name>
+            <long_name>adjacent_cloud_qa</long_name>
+            <file_name>LT40130301987146XXX01_sr_adjacent_cloud_qa.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>quality/feature classification</data_units>
+            <valid_range min="0" max="255"/>
+            <class_values>
+                <class num="0">not adjacent cloud</class>
+                <class num="255">adjacent cloud</class>
+            </class_values>
+            <app_version>LEDAPS_2.3.1</app_version>
+            <production_date>2015-10-19T19:46:43Z</production_date>
+        </band>
+        <band product="cfmask" source="toa_refl" name="cfmask" category="qa" data_type="UINT8" nlines="7021" nsamps="7761" fill_value="255">
+            <short_name>LT4CFMASK</short_name>
+            <long_name>cfmask_band</long_name>
+            <file_name>LT40130301987146XXX01_cfmask.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>quality/feature classification</data_units>
+            <valid_range min="0" max="4"/>
+            <class_values>
+                <class num="0">clear</class>
+                <class num="1">water</class>
+                <class num="2">cloud_shadow</class>
+                <class num="3">snow</class>
+                <class num="4">cloud</class>
+                <class num="255">fill</class>
+            </class_values>
+            <app_version>cfmask_1.6.0</app_version>
+            <production_date>2015-10-19T20:01:27Z</production_date>
+        </band>
+        <band product="cfmask" source="toa_refl" name="cfmask_conf" category="qa" data_type="UINT8" nlines="7021" nsamps="7761" fill_value="255">
+            <short_name>LT4CFMASK_CONF</short_name>
+            <long_name>cfmask_conf_band</long_name>
+            <file_name>LT40130301987146XXX01_cfmask_conf.tif</file_name>
+            <pixel_size x="30" y="30" units="meters"/>
+            <resample_method>none</resample_method>
+            <data_units>quality/feature classification</data_units>
+            <valid_range min="0" max="3"/>
+            <class_values>
+                <class num="0">None</class>
+                <class num="1">less than or equal to 12.5 Percent Cloud Confidence</class>
+                <class num="2">greater than 12.5 and less than or equal to 22.5 Percent Cloud Confidence</class>
+                <class num="3">greater than 22.5 Percent Cloud Confidence</class>
+                <class num="255">fill</class>
+            </class_values>
+            <app_version>cfmask_1.6.0</app_version>
+            <production_date>2015-10-19T20:01:27Z</production_date>
+        </band>
+    </bands>
+</espa_metadata>

@@ -1,6 +1,7 @@
 """ Module for dealing with Landsat sensors
 """
 from collections import OrderedDict
+import logging
 import re
 
 import arrow
@@ -13,44 +14,55 @@ from . import SENSOR_FRIENDLY_NAMES
 from .._util import lazy_property
 from ..core import Band, BoundingBox
 
+logger = logging.getLogger('tilezilla')
 
 #: dict[sensor=dict[friedly_name=band number]]
-sensor_bands_friendly_name = {
-    'LM': SENSOR_FRIENDLY_NAMES['MSS'],
-    'LT': SENSOR_FRIENDLY_NAMES['TM'],
-    'LE': SENSOR_FRIENDLY_NAMES['ETM+'],
-    'LC': SENSOR_FRIENDLY_NAMES['OLI_TIRS']
+SENSOR_BAND_FRIENDLY_NAMES = {
+    'LM1': SENSOR_FRIENDLY_NAMES['MSS'],
+    'LM2': SENSOR_FRIENDLY_NAMES['MSS'],
+    'LM2': SENSOR_FRIENDLY_NAMES['MSS'],
+    'LT4': SENSOR_FRIENDLY_NAMES['TM'],
+    'LT5': SENSOR_FRIENDLY_NAMES['TM'],
+    'LE7': SENSOR_FRIENDLY_NAMES['ETM+'],
+    'LC8': SENSOR_FRIENDLY_NAMES['OLI_TIRS']
 }
 
 
+# TODO: refactor to module level
 def description_to_friendly_name(sensor, desc):
     """ Return friendly name of band given description and sensor
 
     Args:
         sensor (str): Landsat sensor [LM, LT, LE, LC]
+    Returns:
+        str: Return converted friendly name or original description if
+            could not convert
     """
-    if sensor not in sensor_bands_friendly_name:
-        return ''
-    switch = sensor_bands_friendly_name[sensor]
+    if not sensor or sensor not in SENSOR_BAND_FRIENDLY_NAMES:
+        logger.debug('Could not convert friendly name "{desc}": '
+                     '"{sensor}" is unknown.'.format(desc=desc, sensor=sensor))
+        return desc
+    switch = SENSOR_BAND_FRIENDLY_NAMES[sensor]
     for k, v in six.iteritems(switch):
-        if re.match('.*{}($|[^0-9].*)'.format(v), desc):
+        if re.match('.*{}($|0.*| +\w.*)'.format(v), desc):
             return k
+    return desc
 
-
-def parse_MTL(fid):
+def parse_MTL(filename):
     """ Return an ordered dict from a Landsat "MTL" metadata file
 
     Args:
-        fid (file descriptor): file descriptor for "MTL" metadata file
+        filename (str): MTL filename
 
     Returns:
         OrderedDict: dict of MTL file
     """
     data = OrderedDict()
-    for line in fid:
-        split = str(line).split(' = ')
-        if len(split) == 2:
-            data[split[0].strip().strip('"')] = split[1].strip().strip('"')
+    with open(filename, 'rt') as fid:
+        for line in fid:
+            split = line.split(' = ')
+            if len(split) == 2:
+                data[split[0].strip().strip('"')] = split[1].strip().strip('"')
     return data
 
 
@@ -112,19 +124,7 @@ class MTL(object):
         Returns:
             MTL: Instance of MTL
         """
-        with open(path, 'r') as fid:
-            return cls(path, parse_MTL(fid))
-
-    @classmethod
-    def from_fid(cls, fid):
-        """
-        Args:
-            fid (file descriptor): file descriptor for "MTL" metadata file
-
-        Returns:
-            MTL: Instance of MTL
-        """
-        return cls(parse_MTL(fid))
+        return cls(path, parse_MTL(path))
 
 
 class ESPAMetadata(object):
