@@ -1,4 +1,3 @@
-import pytest
 import six
 
 from tilezilla import sensors
@@ -16,5 +15,5 @@ def test_friendly_names_data():
 
     for name, mapping in six.iteritems(sensors.SENSOR_FRIENDLY_NAMES):
         for band_name, band_idx in six.iteritems(mapping):
-            assert isinstance(band_name, str)
+            assert isinstance(band_name, six.string_types)
             assert isinstance(band_idx, int)
