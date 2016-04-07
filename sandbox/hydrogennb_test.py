@@ -19,7 +19,7 @@ from tilezilla import geoutils, products, stores, tilespec
 weld_conus = tilespec.TILESPECS['WELD_CONUS']
 product = products.ESPALandsat('../tests/data/LT50120312002300-SC20151009172149/')
 
-tile = list(weld_conus.bounds_to_tile(product.bounding_box(weld_conus.crs)))[0]
+tile = list(weld_conus.bounds_to_tiles(product.bounding_box(weld_conus.crs)))[0]
 
 crs.to_string(weld_conus.crs)
 weld_conus.crs

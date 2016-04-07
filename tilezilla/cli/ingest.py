@@ -39,7 +39,7 @@ def ingest_source(task):
         bbox = reproject_bounds(product.bounds, 'EPSG:4326', spec.crs)
 
         # Find tiles for product & IDs of these tiles in database
-        tiles = list(spec.bounds_to_tile(bbox))
+        tiles = list(spec.bounds_to_tiles(bbox))
         tiles_id = [
             cube.ensure_tile(
                 collection_name, tile.horizontal, tile.vertical)

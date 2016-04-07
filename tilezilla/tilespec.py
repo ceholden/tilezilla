@@ -96,7 +96,7 @@ class TileSpec(object):
             self._tiles[index] = Tile(bounds, self.crs, index, self)
         return self._tiles[index]
 
-    def bounds_to_tile(self, bounds):
+    def bounds_to_tiles(self, bounds):
         """ Yield Tile objects for this TileSpec that intersect a given bounds
 
         .. note::
