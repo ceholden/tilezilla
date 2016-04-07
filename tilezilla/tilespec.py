@@ -34,6 +34,8 @@ class TileSpec(object):
             self.crs = rasterio.crs.from_epsg(crs)
         else:
             self.crs = crs
+        if not rasterio.crs.is_valid_crs(self.crs):
+            raise ValueError('Input CRS is not valid')
         self.crs_str = rasterio.crs.to_string(self.crs)
         self.res = res
         self.size = size
