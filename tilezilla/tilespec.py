@@ -111,10 +111,7 @@ class TileSpec(object):
             Tile: the Tiles that intersect within a bounds
         """
         grid_ys, grid_xs = self._frame_bounds(bounds)
-        for index in itertools.product(grid_ys, grid_xs):
-            tile = self._index_to_tile(index)
-            if geoutils.intersects_bounds(bounds, tile.bounds):
-                yield tile
+        return self._yield_tiles(grid_xs, grid_ys, bounds)
 
     def point_to_tile(self, point):
         """ Return a :class:`Tile` containing a given point (x, y)
@@ -129,6 +126,25 @@ class TileSpec(object):
         _y = int((self.ul[1] - point[1]) // py)
 
         return self._index_to_tile((_y, _x))
+
+    def roi_to_tiles(self, roi):
+        """ Yield tiles overlapping a Region of Interest `shapely` geometry
+
+        Args:
+            roi (shapely.geometry.Polygon): A geometry in the tile
+                specifications' crs
+        Yields:
+            Tile: A :class`Tile` that intersects the ROI
+        """
+        bounds = BoundingBox(roi.bounds)
+        grid_ys, grid_xs = self._frame_bounds(bounds)
+        return self._yield_tiles(grid_ys, grid_xs, bounds)
+
+    def _yield_tiles(self, grid_ys, grid_xs, bounds):
+        for index in itertools.product(grid_ys, grid_xs):
+            tile = self._index_to_tile(index)
+            if geoutils.intersects_bounds(bounds, tile.bounds):
+                yield tile
 
     def _frame_bounds(self, bounds):
         px, py = self.size[0] * self.res[0], self.size[1] * self.res[1]
