@@ -9,6 +9,7 @@ import affine
 import rasterio
 import rasterio.crs
 import shapely.geometry
+import six
 
 from . import geoutils
 from .core import BoundingBox
@@ -27,7 +28,12 @@ class TileSpec(object):
 
     def __init__(self, ul, crs, res, size, desc=None):
         self.ul = ul
-        self.crs = crs
+        if isinstance(crs, six.string_types):
+            self.crs = rasterio.crs.from_string(crs)
+        elif isinstance(crs, int):
+            self.crs = rasterio.crs.from_epsg(crs)
+        else:
+            self.crs = crs
         self.crs_str = rasterio.crs.to_string(self.crs)
         self.res = res
         self.size = size
@@ -55,9 +61,11 @@ class TileSpec(object):
             if len(index) > 2:
                 raise IndexError('TileSpec only has two dimensions (row/col)')
             if not isinstance(index[0], int) and isinstance(index[1], int):
-                raise NotImplementedError(
+                raise TypeError(
                     'Only support indexing int/int for now')
             return self._index_to_tile(index)
+        else:
+            raise IndexError('Unknown index type')
 
     def _index_to_bounds(self, index):
         """ Return Tile footprint bounds for given index
