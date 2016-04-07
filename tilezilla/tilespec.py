@@ -44,15 +44,11 @@ class TileSpec(object):
         self._tiles = {}
 
     def __repr__(self):
-        return ("<{name}(desc={desc}, ul={ul}, crs={crs}, "
-                "res={res}, size={size}) at {hex}>".format(
-                    name=self.__class__.__name__,
-                    hex=hex(id(self)),
-                    desc=self.desc,
-                    ul=self.ul,
-                    crs=self.crs,
-                    res=self.res,
-                    size=self.size))
+        return (
+            "<{0.__class__.__name__}(desc={0.desc}, ul={0.ul}, crs={0.crs}, "
+            "res={0.res}, size={0.size}) at {hex}>"
+            .format(self, hex=hex(id(self)))
+        )
 
     def __getitem__(self, index):
         """ Return a Tile for the grid row/column specified by index
