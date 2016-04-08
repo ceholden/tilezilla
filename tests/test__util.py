@@ -2,6 +2,7 @@
 """
 import os
 
+from unittest.mock import Mock
 import pytest
 
 from tilezilla import _util
@@ -11,6 +12,7 @@ from tilezilla import _util
 @pytest.fixture
 def test_object():
     class TestObject(object):
+
         def __init__(self, b):
             self.b = b
 
@@ -94,14 +96,14 @@ def test_find_in_path_success_3(ex_tmpdir):
 
 # multiple_filter
 @pytest.fixture
-def ex_strings():
+def ex_strings(request):
     return [
-        'Landsat_sr_band1.tif',
-        'Landsat_cfmask.tif',
-        'METADATA',
-        'SOMETHING.xml',
-        'Landsat_temp.tif'
-    ]
+    'Landsat_sr_band1.tif',
+    'Landsat_cfmask.tif',
+    'METADATA',
+    'SOMETHING.xml',
+    'Landsat_temp.tif'
+]
 
 
 def test_multiple_filter_success_1(ex_strings):
@@ -116,3 +118,27 @@ def test_multiple_filter_success_2(ex_strings):
     matched = _util.multiple_filter(ex_strings, pattern, regex=True)
     assert len(matched) == 1
     assert matched == ['Landsat_sr_band1.tif']
+
+
+# include_bands
+@pytest.mark.parametrize(
+    ('include', 'regex', 'answer'), [
+    ({'long_name': ['*surface reflectance*']}, False, ['blue', 'red']),
+    ({'long_name': ['*surface reflectance*', '*bright*']}, False, ['blue', 'red', 'temp']),
+    ({'friendly_name': ['blue', 'red']}, False, ['blue', 'red']),
+    ({'long_name': ['.*surface reflectance.*']}, True, ['blue', 'red'])
+])
+def test_include_bands_1(include, regex, answer):
+    bands = []
+
+    friendly_names = ['blue', 'red', 'temp']
+    long_names = [
+        'band 1 surface reflectance',
+        'band 2 surface reflectance',
+        'toa brightness temperature'
+    ]
+    for friendly_name, long_name in zip(friendly_names, long_names):
+        bands.append(Mock(long_name=long_name, friendly_name=friendly_name))
+
+    included_bands = _util.include_bands(bands, include, regex=regex)
+    assert answer == [b.friendly_name for b in included_bands]
