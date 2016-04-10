@@ -99,6 +99,11 @@ class TableProduct(Base):
                 where(TableBand.ref_product_id == cls.id).
                 label('n_bands'))
 
+    __mapper_args__ = {
+        'order_by': acquired
+    }
+
+
 class TableBand(Base):
     __tablename__ = 'band'
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
