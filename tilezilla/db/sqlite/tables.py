@@ -66,6 +66,13 @@ class TableProduct(Base):
                             name='_tile_store_collection_id_uc'),
     )
 
+    def __repr__(self):
+        return (
+            "<{0.ref_tile.collection}(timeseries_id={0.timeseries_id}, "
+            "platform/instrument={0.platform}/{0.instrument}, "
+            "acquired={0.acquired}, n_bands={0.n_bands})>"
+            .format(self))
+
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     #: int: Reference to tile containing product
     ref_tile_id = sa.Column(sa.ForeignKey(TableTile.id), nullable=False)
@@ -82,9 +89,6 @@ class TableProduct(Base):
     # Reference to individual band observations
     bands = sa.orm.relationship('TableBand', backref='ref_product')
 
-    # @sau.aggregated('bands', sa.Column(sa.Integer))
-    # def n_bands(self):
-    #     return sa.func.count('1')
     @sa.ext.hybrid.hybrid_property
     def n_bands(self):
         return len(self.bands)
