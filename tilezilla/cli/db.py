@@ -72,21 +72,53 @@ def info(ctx, table, filter_):
 @db.command(short_help='Search database')
 @options.arg_db_table
 @options.opt_db_filter
+@options.opt_db_distinct
+@options.opt_db_groupby
 @click.pass_context
-def search(ctx, filter_, table):
+def search(ctx, group_by, distinct, filter_, table):
     """ Search a table according to some filters
 
-    Example: search the "product" table for a given product ID
+    Example:
+
+    \b
+    1. Print list of all products with 8 bands, grouped by 'timeseries_id'
+        > tilez db search -h --filter "n_bands = 8"
+            --group_by timeseries_id product
+
     """
+    # TODO: add conjunction argument -- or / and
+    import sqlalchemy_utils as sau
     from ..db import construct_filter
+
     db = _db_from_ctx(ctx)
+    table_columns = sau.get_columns(table)
 
     click.secho('Searching table "{}" where:'.format(table.__tablename__),
                 fg='blue', bold=True)
     for filter_item in filter_:
         click.echo('    {}'.format(filter_item))
 
-    query = construct_filter(db.session.query(table), filter_).all()
+    query = construct_filter(db.session.query(table), filter_)
+
+    if distinct:
+        try:
+            col = table_columns[distinct]
+        except KeyError as ke:
+            raise click.BadParameter(
+                'Cannot select distinct of "{}" in table "{}": no such column'
+                .format(distinct, table), param_hint='distinct')
+        else:
+            query = query.distinct(col)
+    if group_by:
+        try:
+            col = table_columns[group_by]
+        except KeyError as ke:
+            raise click.BadParameter(
+                'Cannot group by "{}" in table "{}": no such column'
+                .format(group_by, table), param_hint='group_by')
+        else:
+            query = query.group_by(col)
+
     click.secho('Results:', fg='red', bold=True)
     for query_row in query:
         click.echo(query_row)
