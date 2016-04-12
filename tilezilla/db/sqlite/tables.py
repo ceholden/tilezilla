@@ -106,11 +106,23 @@ class TableProduct(Base):
 
 class TableBand(Base):
     __tablename__ = 'band'
+
+    def __repr__(self):
+        return (
+            "<Band(product={0.ref_product.timeseries_id}, "
+            "standard_name={0.standard_name}, "
+            "friendly_name={0.friendly_name}, "
+            "units={0.units}, "
+            "fill={0.fill}, range=({0.valid_min}, {0.valid_max}))>"
+            .format(self)
+        )
+
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     ref_product_id = sa.Column(
         sa.ForeignKey(TableProduct.id),
         index=True,
         nullable=False)
+
     path = sa.Column(sa.String, nullable=False)
     bidx = sa.Column(sa.Integer, nullable=False)
     standard_name = sa.Column(sa.String, index=True, nullable=False)
