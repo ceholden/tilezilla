@@ -141,8 +141,7 @@ def search(ctx, quiet, group_by, distinct, filter_, select, table):
 @options.opt_db_distinct
 @options.opt_db_groupby
 @click.pass_context
-def id(ctx, filter_, table):
+def id(ctx, group_by, distinct, filter_, table):
     """ Useful for piping into `tilez spew`
     """
-    db = _db_from_ctx(ctx)
-    ctx.forward(search)
+    ctx.forward(search, select=('id', ), quiet=True)
