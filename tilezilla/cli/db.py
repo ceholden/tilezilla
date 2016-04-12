@@ -4,7 +4,6 @@ import logging
 
 import click
 import six
-import sqlalchemy as sa
 
 from . import cliutils, options
 
@@ -73,8 +72,9 @@ def info(ctx, table, filter_):
 @options.opt_db_filter
 @options.opt_db_distinct
 @options.opt_db_groupby
+@click.option('--quiet', '-q', is_flag=True, help='Suppress excessive text')
 @click.pass_context
-def search(ctx, group_by, distinct, filter_, select, table):
+def search(ctx, quiet, group_by, distinct, filter_, select, table):
     """ Search a table according to some filters
 
     Example:
@@ -92,37 +92,45 @@ def search(ctx, group_by, distinct, filter_, select, table):
     db = _db_from_ctx(ctx)
     table_columns = sau.get_columns(table)
 
-    click.secho('Searching table "{}" where:'.format(table.__tablename__),
-                fg='blue', bold=True)
-    for filter_item in filter_:
-        click.echo('    {}'.format(filter_item))
+    if '*' in select:
+        select = table_columns.keys()
+
+    if not quiet:
+        click.secho('Searching table "{}" where:'.format(table.__tablename__),
+                    fg='blue', bold=True)
+        for filter_item in filter_:
+            click.echo('    {}'.format(filter_item))
 
     query = construct_filter(db.session.query(table), filter_)
 
     if distinct:
         try:
             col = table_columns[distinct]
-        except KeyError as ke:
+        except KeyError:
             raise click.BadParameter(
                 'Cannot select distinct of "{}" in table "{}": no such column'
                 .format(distinct, table), param_hint='distinct')
         else:
             query = query.distinct(col)
+
     if group_by:
         try:
             col = table_columns[group_by]
-        except KeyError as ke:
+        except KeyError:
             raise click.BadParameter(
                 'Cannot group by "{}" in table "{}": no such column'
                 .format(group_by, table), param_hint='group_by')
         else:
             query = query.group_by(col)
 
-    click.secho('Results:', fg='red', bold=True)
+    if not quiet:
+        click.secho('Results:', fg='red', bold=True)
     for query_row in query:
-        if select:
+        if select and not quiet:
             click.echo(', '.join('{}={}'.format(_c, getattr(query_row, _c))
                        for _c in select))
+        elif select and quiet:
+            click.echo(' '.join(str(getattr(query_row, _c)) for _c in select))
         else:
             click.echo(query_row)
 
