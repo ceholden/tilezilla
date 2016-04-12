@@ -106,6 +106,11 @@ opt_db_groupby = click.option(
     help='Group entries by column specified'
 )
 
+opt_db_select = click.option(
+    '--select', type=str, default=None, show_default=True, multiple=True,
+    help='Print (select) one or more columns'
+)
+
 opt_creation_options = click.option(
     '--co',
     'creation_options',

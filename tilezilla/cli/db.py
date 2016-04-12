@@ -66,16 +66,15 @@ def info(ctx, table, filter_):
             'type': '?'
         }))
 
-    from IPython.core.debugger import Pdb; Pdb().set_trace()
-
 
 @db.command(short_help='Search database')
 @options.arg_db_table
+@options.opt_db_select
 @options.opt_db_filter
 @options.opt_db_distinct
 @options.opt_db_groupby
 @click.pass_context
-def search(ctx, group_by, distinct, filter_, table):
+def search(ctx, group_by, distinct, filter_, select, table):
     """ Search a table according to some filters
 
     Example:
@@ -121,12 +120,18 @@ def search(ctx, group_by, distinct, filter_, table):
 
     click.secho('Results:', fg='red', bold=True)
     for query_row in query:
-        click.echo(query_row)
+        if select:
+            click.echo(', '.join('{}={}'.format(_c, getattr(query_row, _c))
+                       for _c in select))
+        else:
+            click.echo(query_row)
 
 
 @db.command(short_help='Search database and return IDs')
 @options.arg_db_table
 @options.opt_db_filter
+@options.opt_db_distinct
+@options.opt_db_groupby
 @click.pass_context
 def id(ctx, filter_, table):
     """ Useful for piping into `tilez spew`
