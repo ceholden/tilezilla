@@ -10,7 +10,7 @@ import click
 import six
 
 from . import cliutils, options
-from ..errors import ProductNotFoundException
+from ..errors import ConsistencyError, ProductNotFoundException
 from .._util import include_bands, mkdir_p
 
 
@@ -59,6 +59,7 @@ def spew(ctx, destination, product_ids, bands, regex):
         include_filter = config['products']['include_filter'].copy()
         regex = include_filter.pop('regex')
 
+    n_bands = None
     for prod_id in product_ids:
         product = dataset.get_product(prod_id)
         if not product:
@@ -70,6 +71,13 @@ def spew(ctx, destination, product_ids, bands, regex):
                     .format(textwrap.indent(str(product), '    ')))
 
         desired_bands = include_bands(product.bands, include_filter, regex)
+
+        n_bands = n_bands or len(desired_bands)
+        if len(desired_bands) != n_bands:
+            raise ConsistencyError(
+                'Inconsistent number of bands found for product '
+                '(#{0.id} - {0.timeseries_id}): got {n1} excepted {n2}'
+                .format(product, n1=len(desired_bands), n2=n_bands))
 
         vrt = stores.VRT(*zip(*[(b.src, b.bidx) for b in desired_bands]))
         dest = os.path.join(stores.destination_path(config, tile, product,

@@ -14,3 +14,7 @@ class FillValueException(Exception):
 
 class ProductNotFoundException(Exception):
     pass
+
+
+class ConsistencyError(Exception):
+    pass
