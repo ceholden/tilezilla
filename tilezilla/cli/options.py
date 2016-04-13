@@ -51,14 +51,14 @@ def callback_from_stdin(ctx, param, value):
     """
     if not value:
         stdin = click.get_text_stream('stdin')
-        value = next(stdin)
-        if not value:
+        if not stdin:
             _type = ('argument' if isinstance(param, click.core.Argument)
                      else 'option')
             raise click.BadParameter(
                 'Must specify parameter via stdin or as {}'.format(_type),
                 param=param)
-        value = [v for v in value.replace('\n', ' ').split(' ') if v]
+
+        value = (v.strip('\n ') for v in stdin if v)
         return param.process_value(ctx, value)
     return value
 
