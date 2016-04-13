@@ -109,7 +109,7 @@ class TileSpec(object):
             Tile: the Tiles that intersect within a bounds
         """
         grid_ys, grid_xs = self._frame_bounds(bounds)
-        return self._yield_tiles(grid_xs, grid_ys, bounds)
+        return self._yield_tiles(grid_ys, grid_xs, bounds)
 
     def point_to_tile(self, point):
         """ Return a :class:`Tile` containing a given point (x, y)
