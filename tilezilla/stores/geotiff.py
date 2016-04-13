@@ -110,7 +110,10 @@ class GeoTIFFStore(object):
         Returns:
             str: The path of the file once copied into this product's store
         """
-        return shutil.copy(path, self._product_filename(product))
+        dest = os.path.join(self._product_filename(product),
+                            os.path.basename(path))
+        shutil.copy(path, dest)
+        return dest
 
     def _product_filename(self, product):
         """ Return path to product
