@@ -34,11 +34,12 @@ def info(ctx, table, filter_):
     """ Print table summary information
     """
     import sqlalchemy_utils as sau
+    from ..db import construct_filter
     db = _db_from_ctx(ctx)
     echoer = cliutils.Echoer(logging.getLogger('tilez'))
 
     echoer.info('Information about: {}'.format(table))
-    query = db.session.query(table).filter_by(**filter_)
+    query = construct_filter(db.session.query(table), filter_)
 
     echoer.process('Number of entries: {}'.format(query.count()))
 
