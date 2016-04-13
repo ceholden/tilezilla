@@ -4,6 +4,7 @@
 from collections import defaultdict
 import logging
 import os
+import textwrap
 
 import click
 import six
@@ -64,14 +65,11 @@ def spew(ctx, destination, product_ids, bands, regex):
             raise ProductNotFoundException('No product in index with ID={}'
                                            .format(prod_id))
         tile = database.get_product(prod_id).ref_tile
-        echoer.item('Exporting product for tile: {collect}{tile}{prod}'.format(
-            collect=product.description,
-            tile='h{}v{}'.format(tile.horizontal, tile.vertical),
-            prod=product.timeseries_id
-        ))
 
-        desired_bands = include_bands(product.bands, include_filter,
-                                      regex=regex)
+        echoer.item('Exporting product:\n{0}'
+                    .format(textwrap.indent(str(product), '    ')))
+
+        desired_bands = include_bands(product.bands, include_filter, regex)
 
         vrt = stores.VRT(*zip(*[(b.src, b.bidx) for b in desired_bands]))
         dest = os.path.join(stores.destination_path(config, tile, product,
