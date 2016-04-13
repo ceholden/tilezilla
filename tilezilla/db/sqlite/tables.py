@@ -56,7 +56,7 @@ class TableTile(Base):
     products = sa.orm.relationship('TableProduct', backref='ref_tile')
 
 
-class TableProduct(Base):
+class TableProduct(Base, sau.Timestamp):
     """ SQL representation of dataset products
     """
     __tablename__ = 'product'
@@ -104,7 +104,7 @@ class TableProduct(Base):
     }
 
 
-class TableBand(Base):
+class TableBand(Base, sau.Timestamp):
     __tablename__ = 'band'
 
     def __repr__(self):
