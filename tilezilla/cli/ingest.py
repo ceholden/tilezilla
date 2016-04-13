@@ -81,6 +81,12 @@ def ingest_source(task):
                         continue
                     band.path = dst_path
 
+                    # Copy over metadata files
+                    for md_name in product.metadata_files:
+                        dst_path = store.store_file(
+                            product, str(product.metadata_files[md_name]))
+                        product.metadata_files[md_name] = dst_path
+
                     # Update index with new product/band entry
                     if tile_prod_query:
                         # TODO: we need to handle deleting/transfering existing
@@ -92,11 +98,6 @@ def ingest_source(task):
                         band_id = dataset.ensure_band(product_id, band)
 
                     # TODO: delete file if index went bad
-
-                    # Copy over metadata files
-                    for md_name in product.metadata_files:
-                        store.store_file(product,
-                                         str(product.metadata_files[md_name]))
                     product_ids.append(product_id)
                     band_ids.append(band_id)
 
