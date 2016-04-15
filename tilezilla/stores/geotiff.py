@@ -103,6 +103,10 @@ class GeoTIFFStore(object):
         An example use case for this method include storing metadata files
         associated with a given product (e.g., "MTL" text files for Landsat).
 
+        Note that this method swallows `shutil.SameFileError` that may be
+        raised during the copy procedure. If the files are the same then
+        the copying has, in effect, worked correctly.
+
         Args:
             product (BaseProduct): A product to store
             path (str): The path of the file to be stored
@@ -112,7 +116,10 @@ class GeoTIFFStore(object):
         """
         dest = os.path.join(self._product_filename(product),
                             os.path.basename(path))
-        shutil.copy(path, dest)
+        try:
+            shutil.copy(path, dest)
+        except shutil.SameFileError:
+            pass
         return dest
 
     def _product_filename(self, product):
