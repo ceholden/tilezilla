@@ -20,31 +20,26 @@ class BaseProduct(six.with_metaclass(abc.ABCMeta)):
 
     def __repr__(self):
         s = """
-        Product: {desc}
+        Product: {0.description}
 
-        Scene ID: {scene_id}
+        Scene ID: {0.timeseries_id}
         Acquisition date/time: {acquired}
         Processing date/time: {processed}
         Bounding Box:
-            Top:        {uly}
-            Left:       {ulx}
-            Bottom:     {lry}
-            Right:      {lrx}
+            Top:        {bounds.top}
+            Left:       {bounds.left}
+            Bottom:     {bounds.bottom}
+            Right:      {bounds.right}
 
         Bands: {nbands}
         {band_names}
-        """.format(
-            desc=self.description,
-            scene_id=self.timeseries_id,
-            acquired=self.acquired.datetime,
-            processed=self.processed.datetime,
-            uly=self.bounds.top,
-            ulx=self.bounds.left,
-            lry=self.bounds.bottom,
-            lrx=self.bounds.right,
-            nbands=len(self.bands),
-            band_names='\n'.join(
-                [''] + [' ' * 12 + b.long_name for b in self.bands])
+        """.format(self,
+                   acquired=self.acquired.datetime,
+                   processed=self.processed.datetime,
+                   bounds=self.bounds,
+                   nbands=len(self.bands),
+                   band_names='\n'.join(
+                        [''] + [' ' * 12 + b.long_name for b in self.bands])
         )
         return textwrap.dedent(s)
 
