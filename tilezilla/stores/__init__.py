@@ -15,6 +15,7 @@ STORAGE_TYPES = {
 __all__ = [GeoTIFFStore, VRT]
 
 
+
 def destination_path(config, tile, product, root_override=None):
     """ Return path to tile data directory
 
@@ -33,10 +34,6 @@ def destination_path(config, tile, product, root_override=None):
         str: Product destination root folder
     """
     root = root_override or config['store']['root']
-    tile_attrs = {
-        k: v for k, v in inspect.getmembers(tile)
-        if not callable(v) and not k.startswith('_')
-    }
-    tile_part = config['store']['tile_dirpattern'].format(**tile_attrs)
+    tile_part = tile.str_format(config['store']['tile_dirpattern'])
 
     return os.path.join(root, product.description, tile_part)

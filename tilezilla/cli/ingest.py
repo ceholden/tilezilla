@@ -101,8 +101,10 @@ def ingest_source(task):
                     product_ids.append(product_id)
                     band_ids.append(band_id)
 
-                    echoer.item('Tiled band for tile h{}v{}'
-                                .format(tile.horizontal, tile.vertical))
+
+                    echoer.item('Tiled band for tile {}'.format(
+                        tile.str_format(config['store']['tile_dirpattern'])
+                    ))
 
     return set(product_ids), set(band_ids)
 
