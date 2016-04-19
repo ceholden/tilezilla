@@ -40,7 +40,7 @@ def decompress_to(archive):
         str: path to directory containing extracted archive
     """
     try:
-        _tmp = tempfile.mkdtemp()
+        _tmp = tempfile.mkdtemp(prefix='tilezilla_')
         with tarfile.open(archive) as tgz:
             tgz.extractall(_tmp)
         yield _tmp
