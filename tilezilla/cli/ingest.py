@@ -138,7 +138,7 @@ def _include_bands_from_config(config, bands):
               help='Overwriting existing tiled data')
 @options.arg_sources
 @click.pass_context
-def ingest(ctx, sources, overwrite, log_dir, njob, parallel):
+def ingest(ctx, sources, overwrite, log_dir, njob, executor):
     config = options.fetch_config(ctx)
     logger = logging.getLogger('tilez')
     echoer = cliutils.Echoer(logger)
@@ -151,7 +151,7 @@ def ingest(ctx, sources, overwrite, log_dir, njob, parallel):
               os.path.join(log_dir, os.path.basename(src) + '.log'))
              for src in sources]
 
-    results = parallel.map(ingest_source, tasks)
+    results = executor.map(ingest_source, tasks)
 
     product_ids = []
     band_ids = []

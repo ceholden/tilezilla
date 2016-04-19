@@ -143,7 +143,8 @@ def opt_multiprocess_method(f):
     def _callback(ctx, param, value):
         return multiprocess.get_executor(value, ctx.params['njob'])
     return click.option(
-        '--parallel',
+        '--parallel-executor', '-pe',
+        'executor',
         type=click.Choice(multiprocess.MULTIPROC_METHODS),
         default='serial',
         callback=_callback,
