@@ -21,7 +21,7 @@ install:
     - conda env update -n test -f environment.yaml
     - source activate test
     - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-        pip install -r requirements-py27.txt
+          pip install -r requirements-py27.txt;
       fi
     # Install tilezilla
     - pip install -e .
