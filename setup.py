@@ -1,5 +1,9 @@
 import os
 from setuptools import find_packages, setup
+import sys
+
+
+PY2 = sys.version_info[0] == 2
 
 # Get version
 with open(os.path.join('tilezilla', 'version.py')) as f:
@@ -13,11 +17,19 @@ install_requires = [
     'click',
     'click_plugins',
     'numpy',
+    'GDAL',
     'rasterio',
     'shapely',
+    'clover',
+    'beautifulsoup4',
+    'lxml',
     'pyyaml',
+    'jsonschema',
     'sqlalchemy',
+    'sqlalchemy-utils',
 ]
+if PY2:
+    install_requires += ['futures']
 
 entry_points = '''
     [console_scripts]
@@ -34,7 +46,7 @@ setup(
     name='tilezilla',
     version=version,
     packages=find_packages(),
-    package_data={'tilezilla': ['data/']},
+    package_data={'tilezilla': ['data/*']},
     include_package_data=True,
     install_requires=install_requires,
     entry_points=entry_points
