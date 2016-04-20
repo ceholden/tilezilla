@@ -101,19 +101,27 @@ class Database(object):
                            vertical=vertical,
                            ref_tilespec_id=tilespec_id).first())
 
+    def create_tile(self, tilespec_id, storage, collection,
+                    horizontal, vertical, bounds):
+        return TableTile(ref_tilespec_id=tilespec_id,
+                         storage=storage,
+                         collection=collection,
+                         horizontal=horizontal,
+                         vertical=vertical,
+                         bounds=bounds)
+
     def ensure_tile(self, tilespec_id, storage, collection,
                     horizontal, vertical, bounds):
-        tile = self.get_tile_by_tile_index(tilespec_id, storage, collection,
-                                           horizontal, vertical)
+        tile = self.get_tile_by_tile_index(
+            tilespec_id, storage, collection, horizontal, vertical)
         if not tile:
-            with self.scope() as txn:
-                tile = TableTile(ref_tilespec_id=tilespec_id,
-                                 storage=storage,
-                                 collection=collection,
-                                 horizontal=horizontal,
-                                 vertical=vertical,
-                                 bounds=bounds)
-                txn.add(tile)
+            tile = self.create_tile(
+                tilespec_id=tilespec_id,
+                storage=storage,
+                collection=collection,
+                horizontal=horizontal,
+                vertical=vertical,
+                bounds=bounds)
         return tile
 
 # PRODUCTS
@@ -129,6 +137,17 @@ class Database(object):
         return (self.session.query(TableProduct)
                 .filter_by(timeseries_id=name).all())
 
+    def create_product(self, product):
+        return TableProduct(
+            timeseries_id=product.timeseries_id,
+            platform=product.platform,
+            instrument=product.instrument,
+            acquired=product.acquired,
+            processed=product.processed,
+            metadata_=getattr(product, 'metadata', {}),
+            metadata_files_=getattr(product, 'metadata_files', {})
+        )
+
     def ensure_product(self, tile_id, product):
         product_ = (self.session.query(TableProduct)
                     .filter_by(timeseries_id=product.timeseries_id,
@@ -136,16 +155,8 @@ class Database(object):
                     .first())
         if not product_:
             with self.scope() as txn:
-                product_ = TableProduct(
-                    ref_tile_id=tile_id,
-                    timeseries_id=product.timeseries_id,
-                    platform=product.platform,
-                    instrument=product.instrument,
-                    acquired=product.acquired,
-                    processed=product.processed,
-                    metadata_=getattr(product, 'metadata', {}),
-                    metadata_files_=getattr(product, 'metadata_files', {})
-                )
+                product_ = self.create_product(product)
+                product.ref_tile_id = tile_id
                 txn.add(product_)
         return product_
 
@@ -162,13 +173,15 @@ class Database(object):
         band_ = self.get_band_by_name(product_id, band.standard_name)
         if not band_:
             with self.scope() as txn:
-                band_ = self._create_band(product_id, band)
+                band_ = self._create_band(band)
+                band_.ref_product_id = product_id
                 txn.add(band_)
         return band_
 
     def update_band(self, product_id, band):
         band_ = self.get_band_by_name(product_id, band.standard_name)
-        new_band = self._create_band(product_id, band)
+        new_band = self.create_band(band)
+        new_band.ref_product_id = product_id
         with self.scope() as txn:
             if band_:
                 new_band.id = band_.id
@@ -177,9 +190,10 @@ class Database(object):
                 txn.add(new_band)
         return new_band
 
-    def _create_band(self, product_id, band):
+    def create_band(self, band):
+        """ :class:`Band` to :class:`TableBand` without a `ref_product_id`
+        """
         return TableBand(
-            ref_product_id=product_id,
             standard_name=band.standard_name,
             path=band.path,
             bidx=band.bidx,
