@@ -67,11 +67,13 @@ class TableProduct(Base, sau.Timestamp):
     )
 
     def __repr__(self):
+        collection = ('Product' if not getattr(self, 'ref_tile', None) else
+                      self.ref_tile.collection)
         return (
-            "<{0.ref_tile.collection}(timeseries_id={0.timeseries_id}, "
+            "<{collection}(timeseries_id={0.timeseries_id}, "
             "platform/instrument={0.platform}/{0.instrument}, "
             "acquired={0.acquired}, n_bands={0.n_bands})>"
-            .format(self))
+            .format(self, collection=collection))
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     #: int: Reference to tile containing product
@@ -108,13 +110,15 @@ class TableBand(Base, sau.Timestamp):
     __tablename__ = 'band'
 
     def __repr__(self):
+        product = ('Product' if not getattr(self, 'ref_product', None)
+                   else self.ref_product.timeseries_id)
         return (
-            "<Band(product={0.ref_product.timeseries_id}, "
+            "<Band(product={product}, "
             "standard_name={0.standard_name}, "
             "friendly_name={0.friendly_name}, "
             "units={0.units}, "
             "fill={0.fill}, range=({0.valid_min}, {0.valid_max}))>"
-            .format(self)
+            .format(self, product=product)
         )
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
