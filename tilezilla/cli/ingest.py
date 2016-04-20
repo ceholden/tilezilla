@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """ CLI to process imagery products to tiles and index in database
 """
+from collections import defaultdict
+import concurrent.futures
 import logging
 import os
 
@@ -147,19 +149,30 @@ def ingest(ctx, sources, overwrite, log_dir, njob, executor):
     if log_dir:
         mkdir_p(log_dir)
 
-    tasks = [(config, src, overwrite, log_dir and
-              os.path.join(log_dir, os.path.basename(src) + '.log'))
-             for src in sources]
-
-    results = executor.map(ingest_source, tasks)
-
-    product_ids = []
-    band_ids = []
-    for result in results:
-        product_ids.extend(result[0])
-        band_ids.extend(result[1])
+    product_ids, band_ids = [], []
+    futures = {
+        executor.submit(ingest_source, config, src, overwrite,
+                        log_dir and os.path.join(
+                            log_dir, os.path.basename(src) + '.log')): src
+        for src in sources
+    }
+    sources_indexed = 0
+    for future in concurrent.futures.as_completed(futures):
+        src = futures[future]
+        try:
+            indexed_products, indexed_bands = future.result()
+            product_ids.extend(indexed_products)
+            band_ids.extend(indexed_bands)
+        except Exception as exc:
+            echoer.warning('Ingest of {} produced exception: {}'
+                           .format(src, exc))
+        else:
+            echoer.item('Ingested: {} (product IDs: {})'
+                        .format(src, [p.id for p in indexed_products.values()])
+            )
+            sources_indexed += 1
 
     echoer.process('Indexed {nprod} products to {ntile} tiles of {nband} bands'
-                   .format(nprod=len(sources),
+                   .format(nprod=sources_indexed,
                            ntile=len(set(product_ids)),
                            nband=len(band_ids)))
