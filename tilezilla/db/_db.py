@@ -122,6 +122,14 @@ class Database(object):
                 horizontal=horizontal,
                 vertical=vertical,
                 bounds=bounds)
+            try:
+                with self.scope() as txn:
+                    txn.add(tile)
+            except sa.exc.IntegrityError:
+                tile = self.get_tile_by_tile_index(
+                    tilespec_id, storage, collection, horizontal, vertical)
+                if not tile:
+                    raise
         return tile
 
 # PRODUCTS
