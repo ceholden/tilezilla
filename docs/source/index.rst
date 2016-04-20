@@ -6,11 +6,16 @@
 Welcome to tilezilla's documentation!
 ========================================
 
-Contents:
+.. todo::
+    Brief introduction
+
+User Guide:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
+   guide/guide_configuration
+   guide/guide_cli
 
 
 Indices and tables
