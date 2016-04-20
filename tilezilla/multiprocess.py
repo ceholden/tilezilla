@@ -1,8 +1,12 @@
 """ Multiprocess helpers
 """
+import logging
+
 # LOGGING FOR MULTIPROCESSING
 MULTIPROC_LOG_FORMAT = '%(asctime)s:%(hostname)s:%(process)d:%(levelname)s:%(message)s'  # noqa
 MULTIPROC_LOG_DATE_FORMAT = '%H:%M:%S'
+
+_LOG = logging.getLogger(__name__)
 
 
 def get_logger_multiproc(name=None, filename='', stream='stdout'):
@@ -17,7 +21,6 @@ def get_logger_multiproc(name=None, filename='', stream='stdout'):
     Returns:
         logging.LoggerAdapter: A configured logger
     """
-    import logging
     import socket
     import click
 
@@ -54,29 +57,6 @@ def get_logger_multiproc(name=None, filename='', stream='stdout'):
 
 
 # MULTIPROCESSING
-class SerialExecutor(object):
-    """ Make regular old 'map' look like :mod:`futures.concurrent`
-    """
-    map = map
-
-    def submit(self, func, *args, **kwargs):
-        return func(*args, **kwargs)
-
-    @staticmethod
-    def result(value):
-        return value
-
-    def shutdown(self, wait=True):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self):
-        self.shutdown()
-        return False
-
-
 def get_executor(executor, njob):
     """ Return an instance of a execution mapper
 
@@ -88,11 +68,18 @@ def get_executor(executor, njob):
         cls: Instance of a pool executor
 
     """
+    try:
+        from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+    except ImportError:
+        _LOG.critical('You must have Python3 or "futures" package installed.')
+        raise
     if executor.lower() == 'process':
-        from concurrent.futures import ProcessPoolExecutor
         return ProcessPoolExecutor(njob)
+    elif executor.lower() == 'thread':
+        _LOG.warning('Un-tested executor for multiprocessing')
+        return ThreadPoolExecutor(njob)
     else:
-        return SerialExecutor()
+        return ThreadPoolExecutor(1)  # serial
 
 
 MULTIPROC_METHODS = [
