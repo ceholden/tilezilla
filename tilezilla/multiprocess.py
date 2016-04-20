@@ -99,4 +99,6 @@ MULTIPROC_METHODS = [
     'serial',
     'process',
     # TODO: ipyparallel for distributed across network
+    # TODO: note that ipyparallel can give us a "Futures" result:
+    # https://github.com/ipython/ipyparallel/blob/58136e8d727967f0783c4c003ba54e3ca1879fbf/examples/Futures.ipynb
 ]
