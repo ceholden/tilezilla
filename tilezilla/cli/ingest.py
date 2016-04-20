@@ -16,11 +16,12 @@ from ..geoutils import reproject_as_needed, reproject_bounds
 from ..stores import destination_path, STORAGE_TYPES
 
 
-def ingest_source(task):
-    """ Ingest (tile and ingest) a source
-    """
-    config, source, overwrite, log_name = task
+def ingest_source(config, source, overwrite, log_name):
+    """ Ingest (tile and index) a source
 
+    Table entries for indexing are created and returned by this function so
+    that database writes can be performed in parent process/context.
+    """
     mlogger = multiprocess.get_logger_multiproc(name=os.path.basename(source),
                                                 filename=log_name)
     echoer = cliutils.Echoer(logger=mlogger)
@@ -28,7 +29,6 @@ def ingest_source(task):
     spec, storage_name, database, cube, dataset = (
         cliutils.config_to_resources(config))
 
-    product_ids, band_ids = [], []
     echoer.info('Decompressing: {}'.format(os.path.basename(source)))
     with decompress_to(source) as tmpdir:
         # Find product and get dataset database resource
@@ -47,26 +47,32 @@ def ingest_source(task):
                 collection_name, tile.horizontal, tile.vertical)
             for tile in tiles
         ]
-        tiles_product_query = [
-            database.get_product_by_name(tile_id, product.timeseries_id)
+        tiles_product = {
+            tile_id: database.get_product_by_name(
+                tile_id, product.timeseries_id)
             for tile_id in tiles_id
-        ]
+        }
 
+        indexed_products, indexed_bands = {}, defaultdict(list)
         for band in desired_bands:
             echoer.info('Reprojecting band: {}'.format(band))
             with reproject_as_needed(band.src, spec) as src:
                 band.src = src
                 echoer.process('Tiling: {}'.format(band.long_name))
-                for tile, tile_id, tile_prod_query in zip(tiles,
-                                                          tiles_id,
-                                                          tiles_product_query):
-                    # Check if exists
-                    if tile_prod_query:
-                        _band_names = [b.standard_name for b in
-                                       tile_prod_query.bands]
+                for tile, tile_id in zip(tiles, tiles_id):
+                    db_product = tiles_product[tile_id]
+                    if db_product:
+                        # If product is in DB, check if we have bands to add
+                        _band_names = [b.standard_name for b
+                                       in db_product.bands]
                         if band.standard_name in _band_names and not overwrite:
                             echoer.item('Already tiled -- skipping')
                             continue
+                    else:
+                        # Product not in DB -- need to create
+                        db_product = database.create_product(product)
+                        db_product.ref_tile_id = tile_id
+                        tiles_product[tile_id] = db_product
 
                     # Setup dataset store
                     path = destination_path(config, tile, product)
@@ -90,25 +96,28 @@ def ingest_source(task):
                         product.metadata_files[md_name] = dst_path
 
                     # Update index with new product/band entry
-                    if tile_prod_query:
-                        # TODO: we need to handle deleting/transfering existing
-                        #       bands over maybe overwriting product
-                        product_id = tile_prod_query.id
-                        band_id = dataset.update_band(tile_prod_query.id, band)
+                    if db_product.id:
+                        db_band = (
+                            database.get_band_by_name(db_product.id,
+                                                      band.standard_name)
+                            or database.create_band(band)
+                        )
                     else:
-                        product_id = dataset.ensure_product(tile_id, product)
-                        band_id = dataset.ensure_band(product_id, band)
+                        db_product = database.create_product(product)
+                        db_product.ref_tile_id = tile_id
+                        db_band = database.create_band(band)
+
+                    indexed_products[tile_id] = db_product
+                    indexed_bands[tile_id].append(db_band)
 
                     # TODO: delete file if index went bad
-                    product_ids.append(product_id)
-                    band_ids.append(band_id)
-
-
                     echoer.item('Tiled band for tile {}'.format(
                         tile.str_format(config['store']['tile_dirpattern'])
                     ))
 
-    return set(product_ids), set(band_ids)
+    # Make sure to close database connection
+    database.session.close()
+    return indexed_products, indexed_bands
 
 
 def _include_bands_from_config(config, bands):
@@ -145,6 +154,9 @@ def ingest(ctx, sources, overwrite, log_dir, njob, executor):
     logger = logging.getLogger('tilez')
     echoer = cliutils.Echoer(logger)
 
+    spec, storage_name, database, cube, dataset = (
+        cliutils.config_to_resources(config))
+
     echoer.info('Ingesting {} products'.format(len(sources)))
     if log_dir:
         mkdir_p(log_dir)
@@ -161,8 +173,17 @@ def ingest(ctx, sources, overwrite, log_dir, njob, executor):
         src = futures[future]
         try:
             indexed_products, indexed_bands = future.result()
-            product_ids.extend(indexed_products)
-            band_ids.extend(indexed_bands)
+            for k in indexed_products:
+                prod = indexed_products[k]
+                with database.scope() as txn:
+                    txn.add(prod)
+                    txn.flush()
+                    for b in indexed_bands[k]:
+                        b.ref_product_id = prod.id
+                        txn.add(b)
+                product_ids.append(prod.id)
+                band_ids.extend([b.id for b in indexed_bands[k]])
+
         except Exception as exc:
             echoer.warning('Ingest of {} produced exception: {}'
                            .format(src, exc))
