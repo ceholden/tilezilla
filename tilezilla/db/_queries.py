@@ -3,6 +3,7 @@
 import logging
 import re
 
+import arrow
 import six
 import sqlalchemy as sa
 import sqlalchemy_utils as sau
@@ -72,6 +73,9 @@ def convert_query_type(column, value):
     Returns:
         type: `value`, converted to a different type
     """
+    if isinstance(column.type, (sa.sql.sqltypes.DateTime,
+                                sa.sql.sqltypes.Date)):
+        return arrow.get(value).datetime
     return sau.cast_if(value, type(column.type))
 
 
