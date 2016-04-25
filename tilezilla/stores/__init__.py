@@ -11,9 +11,10 @@ STORAGE_TYPES = {
     # TODO: 'NetCDF': NetCDFStore
 }
 
-
-__all__ = [GeoTIFFStore, VRT]
-
+__all__ = [
+    'GeoTIFFStore',
+    'VRT'
+]
 
 
 def destination_path(config, tile, product, root_override=None):

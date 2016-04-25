@@ -29,7 +29,7 @@ MOCK_MODULES = [
     'osgeo',
     'affine',
     'shapely', 'shapely.geometry',
-    'pyyaml', 'jsonschema',
+    'yaml', 'jsonschema',
     'bs4'
 ]
 for mod_name in MOCK_MODULES:

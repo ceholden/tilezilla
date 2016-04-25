@@ -94,7 +94,7 @@ def bounds_to_polygon(bounds):
 
 
 def meta_to_bounds(affine, width, height, **kwargs):
-    """ Convert ``rasterio`` **dataset.meta to a BoundingBox
+    """ Convert ``rasterio`` \**dataset.meta to a BoundingBox
 
     Args:
         affine (affine.Affine): Affine transformation
