@@ -1,7 +1,7 @@
 tilezilla (a WIP)
 =================
 
-|Build Status| |Coverage|
+|Build Status| |Coverage| |Docs|
 
 STATUS: IN REDEVELOPMENT
 ------------------------
@@ -94,5 +94,8 @@ If you are interested in developing ``tilezilla``, I suggest installing via ``pi
    :target: https://travis-ci.org/ceholden/tilezilla
 .. |Coverage| image:: https://coveralls.io/repos/github/ceholden/tilezilla/badge.svg?branch=master
    :target:  https://coveralls.io/github/ceholden/tilezilla?branch=master
+.. |Docs| image:: https://readthedocs.org/projects/tilezilla/badge/?version=latest
+   :target: http://tilezilla.readthedocs.org/en/latest/?badge=latest
+   :alt: Documentation Status
 .. _click: http://click.pocoo.org/
 .. _conda: http://conda.pydata.org/docs/
