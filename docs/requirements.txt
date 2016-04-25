@@ -1,5 +1,8 @@
+arrow>=0.7.0
 click>=6.0
 click_plugins>=1.0
+sqlalchemy>=1.0.12
+sqlalchemy_utils>=0.32.1
 mock>=1.0.1
 sphinxcontrib-napoleon>=0.2.8
 sphinx_rtd_theme>=0.1.6

@@ -12,14 +12,34 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-
+import datetime as dt
 import sys
 import os
+
+# Mocking ----------------------------------------------------------------------
+import mock
+
+# NOTE: not mocking sqlalchemy/sqlalchemy_utils because a mocked table
+#       doesn't seem to allow reference to class attributes inside of
+#       foreign keys
+#       "AttributeError: Mock object has no attribute 'id'"
+MOCK_MODULES = [
+    'numpy',
+    'rasterio', 'rasterio.crs', 'rasterio.warp',
+    'osgeo',
+    'affine',
+    'shapely', 'shapely.geometry',
+    'pyyaml', 'jsonschema',
+    'bs4'
+]
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../../'))
 
 # -- General configuration ------------------------------------------------
 
@@ -68,7 +88,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'tilezilla'
-copyright = '2016, Chris Holden'
+copyright = '2015-{}, Chris Holden'.format(dt.date.today().year)
 author = 'Chris Holden'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -138,7 +158,7 @@ html_context = dict(
     github_user="ceholden",
     github_repo="tilezilla",
     github_version="master",
-    conf_py_path="/docs/",
+    conf_py_path="/docs/source/conf.py",
     source_suffix=".rst",
 )
 
