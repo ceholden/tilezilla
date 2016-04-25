@@ -32,7 +32,7 @@ dependencies:
         - click>=6.0
         - click_plugins>=1.0
         # database utils
-        - sqlalchemy-utils
+        - sqlalchemy-utils>=0.32.1
         # compatibility with Python2
         - pathlib>=1.0.1
         - six>=1.10.0
