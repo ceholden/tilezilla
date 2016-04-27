@@ -10,6 +10,10 @@ import sqlalchemy_utils as sau
 
 logger = logging.getLogger('tilezilla')
 
+DATETIME_TYPES = (sa.sql.sqltypes.DateTime,
+                  sa.sql.sqltypes.Date,
+                  sau.ArrowType)
+
 # [OP]
 # 1. REGEX
 COMPARATORS = ['eq', 'ne', 'le', 'lt', 'ge', 'gt', 'in', 'like']
@@ -73,8 +77,7 @@ def convert_query_type(column, value):
     Returns:
         type: `value`, converted to a different type
     """
-    if isinstance(column.type, (sa.sql.sqltypes.DateTime,
-                                sa.sql.sqltypes.Date)):
+    if isinstance(column.type, DATETIME_TYPES):
         return arrow.get(value).datetime
     return sau.cast_if(value, type(column.type))
 
