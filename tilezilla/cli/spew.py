@@ -4,7 +4,6 @@
 from collections import defaultdict
 import logging
 import os
-import textwrap
 
 import click
 import six
@@ -68,7 +67,7 @@ def spew(ctx, destination, product_ids, bands, regex):
         tile = cube.get_tile(database.get_product(prod_id).ref_tile.id)
 
         echoer.item('Exporting product:\n{0}'
-                    .format(textwrap.indent(str(product), '    ')))
+                    .format(str(product).replace('\n', '\n    ')))
 
         desired_bands = include_bands(product.bands, include_filter, regex)
 
