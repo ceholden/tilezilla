@@ -65,7 +65,7 @@ def spew(ctx, destination, product_ids, bands, regex):
         if not product:
             raise ProductNotFoundException('No product in index with ID={}'
                                            .format(prod_id))
-        tile = database.get_product(prod_id).ref_tile
+        tile = cube.get_tile(database.get_product(prod_id).ref_tile.id)
 
         echoer.item('Exporting product:\n{0}'
                     .format(textwrap.indent(str(product), '    ')))
