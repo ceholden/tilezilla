@@ -8,6 +8,7 @@ import os
 
 import click
 
+# TODO: hide many of these imports to improve CLI startup speed
 from . import cliutils, options
 from .. import multiprocess, products
 from .._util import decompress_to, include_bands, mkdir_p
