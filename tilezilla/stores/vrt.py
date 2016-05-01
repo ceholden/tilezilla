@@ -7,7 +7,9 @@ NOTES:
 """
 from collections import defaultdict
 import os
+import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import ElementTree, Element, SubElement
+from xml.dom import minidom
 
 from rasterio import dtypes
 
@@ -49,8 +51,10 @@ class VRT(object):
         Args:
             path (str): Save VRT to this filename
         """
-        with open(path, 'wb') as fid:
-            ElementTree(self.root).write(fid, method='xml')
+        xmlstr = (minidom.parseString(ET.tostring(self.root))
+                  .toprettyxml(indent='    '))
+        with open(path, 'w') as fid:
+            fid.write(xmlstr)
 
     def _add_crs(self, ds):
         crs = SubElement(self.root, 'SRS')
