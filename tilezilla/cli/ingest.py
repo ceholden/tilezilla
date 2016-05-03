@@ -169,6 +169,7 @@ def ingest(ctx, sources, overwrite, log_dir, njob, executor):
                             log_dir, os.path.basename(src) + '.log')): src
         for src in sources
     }
+
     sources_indexed = 0
     for future in concurrent.futures.as_completed(futures):
         src = futures[future]
@@ -177,14 +178,13 @@ def ingest(ctx, sources, overwrite, log_dir, njob, executor):
             for k in indexed_products:
                 prod = indexed_products[k]
                 with database.scope() as txn:
-                    txn.add(prod)
+                    txn.merge(prod) if prod.id else txn.add(prod)
                     txn.flush()
                     for b in indexed_bands[k]:
                         b.ref_product_id = prod.id
-                        txn.add(b)
+                        txn.merge(b) if b.id else txn.add(b)
                 product_ids.append(prod.id)
                 band_ids.extend([b.id for b in indexed_bands[k]])
-
         except Exception as exc:
             echoer.warning('Ingest of {} produced exception: {}'
                            .format(src, exc))
