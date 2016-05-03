@@ -157,16 +157,25 @@ class Database(object):
         )
 
     def ensure_product(self, tile_id, product):
-        product_ = (self.session.query(TableProduct)
-                    .filter_by(timeseries_id=product.timeseries_id,
-                               ref_tile_id=tile_id)
-                    .first())
+        product_ = self.get_product_by_name(tile_id, product.timeseries_id)
         if not product_:
             with self.scope() as txn:
                 product_ = self.create_product(product)
                 product.ref_tile_id = tile_id
                 txn.add(product_)
         return product_
+
+    def update_product(self, tile_id, product):
+        product_ = self.get_product_by_name(tile_id, product.timeseries_id)
+        new_product = self.create_product(product)
+        new_product.ref_tile_id = tile_id
+        with self.scope() as txn:
+            if product_:
+                new_product.id = product_.id
+                txn.merge(new_product)
+            else:
+                txn.add(new_product)
+        return new_product
 
 # BANDS
     def get_band(self, id_):
