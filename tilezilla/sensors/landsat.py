@@ -143,6 +143,12 @@ class ESPAMetadata(object):
         return cls(path, BeautifulSoup(open(str(path)), 'lxml'))
 
     @property
+    def scene_id(self):
+        """ Landsat scene ID (e.g., LT50120312002300LGS01)
+        """
+        return self.data.find('lpgs_metadata_file').text.rstrip('_MTL.txt')
+
+    @property
     def instrument(self):
         """ str: instrument taking acquisition measurement
         """
