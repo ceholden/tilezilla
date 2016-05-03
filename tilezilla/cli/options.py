@@ -71,7 +71,7 @@ arg_config = click.argument(
 arg_sources = click.argument(
     'sources',
     nargs=-1,
-    type=click.Path(readable=True, resolve_path=True, dir_okay=False))
+    type=click.Path(readable=True, resolve_path=True, dir_okay=True))
 
 def arg_db_table(f):
     from ..db import TABLES

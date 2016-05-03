@@ -30,22 +30,28 @@ def lazy_property(prop):
 
 
 @contextmanager
-def decompress_to(archive):
-    """ Extract archive to temporary directory and yield path
+def decompress_to(archive_or_directory):
+    """ Extract archive to temporary directory, if necessary, and yield path
 
     Args:
-        archive (str): tar, tar.gz, etc. file
+        archive_or_directory (str): Path to a directory or archive (tar,
+            tar.gz, etc. file)
 
     Yields:
         str: path to directory containing extracted archive
     """
     try:
-        _tmp = tempfile.mkdtemp(prefix='tilezilla_')
-        with tarfile.open(archive) as tgz:
-            tgz.extractall(_tmp)
-        yield _tmp
+        if os.path.isdir(archive_or_directory):
+            _tmp = None
+            yield archive_or_directory
+        else:
+            _tmp = tempfile.mkdtemp(prefix='tilezilla_')
+            with tarfile.open(archive_or_directory) as tgz:
+                tgz.extractall(_tmp)
+                yield _tmp
     finally:
-        shutil.rmtree(_tmp)
+        if _tmp:
+            shutil.rmtree(_tmp)
 
 
 def mkdir_p(d):
