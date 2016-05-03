@@ -15,19 +15,20 @@ class Database(object):
         self.session = session
 
     @classmethod
-    def connect(cls, uri, debug=False):
+    def connect(cls, uri, connect_args=None, debug=False):
         """ Return a Database for a given URI
 
         Args:
             URI (str): Resource location
+            connect_args (dict): Optional connection arguments
             debug (bool): Turn on sqlalchemy debug echo
 
         Returns:
             Database
         """
-        engine = sa.create_engine(uri, echo=debug)
+        engine = sa.create_engine(uri, echo=debug, connect_args=connect_args)
         Base.metadata.create_all(engine)
-        session = sa.orm.sessionmaker(bind=engine)()
+        session = sa.orm.scoped_session(sa.orm.sessionmaker(bind=engine))
 
         return cls(engine, session)
 
@@ -43,8 +44,12 @@ class Database(object):
             'host': config.get('host', '') or None,
             'port': config.get('port', '') or None
         }
+        connect_args = {}
+        if config.get('drivername') == 'sqlite':
+            connect_args['check_same_thread'] = False
 
         return cls.connect(uri=sa.engine.url.URL(**uri_config),
+                           connect_args=connect_args,
                            debug=config.get('debug', False))
 
     def scope(self):
