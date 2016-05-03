@@ -7,6 +7,7 @@ import logging
 import os
 
 import click
+import six
 
 # TODO: hide many of these imports to improve CLI startup speed
 from . import cliutils, options
@@ -91,10 +92,11 @@ def ingest_source(config, source, overwrite, log_name):
                     band.path = dst_path
 
                     # Copy over metadata files
-                    for md_name in product.metadata_files:
-                        dst_path = store.store_file(
-                            product, str(product.metadata_files[md_name]))
-                        product.metadata_files[md_name] = dst_path
+                    for md_name, md_file in six.iteritems(
+                            product.metadata_files):
+                        if md_file:
+                            dst_path = store.store_file(product, md_file)
+                            product.metadata_files[md_name] = dst_path
 
                     # Update index with new product/band entry
                     if db_product.id:
