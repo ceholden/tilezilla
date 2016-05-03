@@ -73,7 +73,7 @@ def ingest_source(config, source, overwrite, log_name):
                     else:
                         # Product not in DB -- need to create
                         db_product = database.create_product(product)
-                        db_product.ref_tile_id = tile_id
+                        db_product.tile_id = tile_id
                         tiles_product[tile_id] = db_product
 
                     # Setup dataset store
@@ -107,7 +107,7 @@ def ingest_source(config, source, overwrite, log_name):
                         )
                     else:
                         db_product = database.create_product(product)
-                        db_product.ref_tile_id = tile_id
+                        db_product.tile_id = tile_id
                         db_band = database.create_band(band)
 
                     indexed_products[tile_id] = db_product
@@ -183,7 +183,7 @@ def ingest(ctx, sources, overwrite, log_dir, njob, executor):
                     txn.merge(prod) if prod.id else txn.add(prod)
                     txn.flush()
                     for b in indexed_bands[k]:
-                        b.ref_product_id = prod.id
+                        b.product_id = prod.id
                         txn.merge(b) if b.id else txn.add(b)
                 product_ids.append(prod.id)
                 band_ids.extend([b.id for b in indexed_bands[k]])

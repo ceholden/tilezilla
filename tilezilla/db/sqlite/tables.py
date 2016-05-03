@@ -24,7 +24,7 @@ class TableTileSpec(Base):
     size = sa.Column(sau.ScalarListType(int), nullable=False)
 
     # Reference to tiles using this tile specification
-    tiles = sa.orm.relationship('TableTile', backref='ref_tilespec')
+    tiles = sa.orm.relationship('TableTile', backref='tilespec')
 
 
 class TableTile(Base):
@@ -33,14 +33,13 @@ class TableTile(Base):
     __tablename__ = 'tile'
     __table_args__ = (
         # Allow only one unique tile per tilespec per collection/storage method
-        sa.UniqueConstraint('horizontal', 'vertical', 'ref_tilespec_id',
+        sa.UniqueConstraint('horizontal', 'vertical', 'tilespec_id',
                             'storage', 'collection',
                             name='_tilespec_tile_uc'),
     )
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    ref_tilespec_id = sa.Column(sa.ForeignKey(TableTileSpec.id),
-                                nullable=False)
+    tilespec_id = sa.Column(sa.ForeignKey(TableTileSpec.id), nullable=False)
     #: str: Name of storage method
     storage = sa.Column(sa.String, index=True, nullable=False)
     #: str: Collection name
@@ -53,7 +52,7 @@ class TableTile(Base):
     #: BoundingBox: Bounds of tile in EPSG:4326
     bounds = sa.Column(sau.ScalarListType(float), nullable=False)
     # Reference to product collections stored within this tile
-    products = sa.orm.relationship('TableProduct', backref='ref_tile')
+    products = sa.orm.relationship('TableProduct', backref='tile')
 
 
 class TableProduct(Base, sau.Timestamp):
@@ -62,13 +61,13 @@ class TableProduct(Base, sau.Timestamp):
     __tablename__ = 'product'
     __table_args__ = (
         # Allow only one observation (timeseries_id) per tile
-        sa.UniqueConstraint('ref_tile_id', 'timeseries_id',
+        sa.UniqueConstraint('tile_id', 'timeseries_id',
                             name='_tile_store_collection_id_uc'),
     )
 
     def __repr__(self):
-        collection = ('Product' if not getattr(self, 'ref_tile', None) else
-                      self.ref_tile.collection)
+        collection = ('Product' if not getattr(self, 'tile', None) else
+                      self.tile.collection)
         return (
             "<{collection}(timeseries_id={0.timeseries_id}, "
             "platform/instrument={0.platform}/{0.instrument}, "
@@ -77,7 +76,7 @@ class TableProduct(Base, sau.Timestamp):
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     #: int: Reference to tile containing product
-    ref_tile_id = sa.Column(sa.ForeignKey(TableTile.id), nullable=False)
+    tile_id = sa.Column(sa.ForeignKey(TableTile.id), nullable=False)
 
     timeseries_id = sa.Column(sa.String, index=True, nullable=False)
     platform = sa.Column(sa.String, nullable=False)
@@ -89,7 +88,7 @@ class TableProduct(Base, sau.Timestamp):
     metadata_files_ = sa.Column(sau.JSONType, default={})
 
     # Reference to individual band observations
-    bands = sa.orm.relationship('TableBand', backref='ref_product')
+    bands = sa.orm.relationship('TableBand', backref='product')
 
     @sa.ext.hybrid.hybrid_property
     def n_bands(self):
@@ -98,7 +97,7 @@ class TableProduct(Base, sau.Timestamp):
     @n_bands.expression
     def n_bands(cls):
         return (sa.select([sa.func.count(TableBand.id)]).
-                where(TableBand.ref_product_id == cls.id).
+                where(TableBand.product_id == cls.id).
                 label('n_bands'))
 
     __mapper_args__ = {
@@ -110,8 +109,8 @@ class TableBand(Base, sau.Timestamp):
     __tablename__ = 'band'
 
     def __repr__(self):
-        product = ('Product' if not getattr(self, 'ref_product', None)
-                   else self.ref_product.timeseries_id)
+        product = ('Product' if not getattr(self, 'product', None)
+                   else self.product.timeseries_id)
         return (
             "<Band(product={product}, "
             "standard_name={0.standard_name}, "
@@ -122,10 +121,8 @@ class TableBand(Base, sau.Timestamp):
         )
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    ref_product_id = sa.Column(
-        sa.ForeignKey(TableProduct.id),
-        index=True,
-        nullable=False)
+    product_id = sa.Column(sa.ForeignKey(TableProduct.id),
+                           index=True, nullable=False)
 
     path = sa.Column(sa.String, nullable=False)
     bidx = sa.Column(sa.Integer, nullable=False)

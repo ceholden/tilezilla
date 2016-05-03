@@ -98,7 +98,7 @@ class DatasetResource(object):
         return self.db.ensure_product(tile_id, product).id
 
     def _make_product(self, query):
-        product_class = product_registry.products[query.ref_tile.collection]
+        product_class = product_registry.products[query.tile.collection]
         bands = [self._make_band(b) for b in query.bands]
 
         return product_class(
@@ -107,7 +107,7 @@ class DatasetResource(object):
             processed=query.processed,
             platform=query.platform,
             instrument=query.instrument,
-            bounds=BoundingBox(*query.ref_tile.bounds),
+            bounds=BoundingBox(*query.tile.bounds),
             metadata=query.metadata_,
             metadata_files=query.metadata_files_,
             bands=bands
