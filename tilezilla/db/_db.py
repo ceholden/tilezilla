@@ -2,8 +2,8 @@ from contextlib import contextmanager
 
 import sqlalchemy as sa
 
-from .sqlite.tables import (Base, TableTileSpec, TableTile,
-                            TableProduct, TableBand)
+from ._tables import (Base, TableTileSpec, TableTile,
+                      TableProduct, TableBand)
 
 
 class Database(object):

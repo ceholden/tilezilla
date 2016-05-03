@@ -1,4 +1,4 @@
-""" SQLite table definitions
+""" Table definitions
 """
 import sqlalchemy as sa
 import sqlalchemy_utils as sau
@@ -134,3 +134,11 @@ class TableBand(Base, sau.Timestamp):
     valid_min = sa.Column(sa.Float, nullable=False)
     valid_max = sa.Column(sa.Float, nullable=False)
     scale_factor = sa.Column(sa.Float)
+
+
+TABLES = {
+    'tilespec': TableTileSpec,
+    'tile': TableTile,
+    'product': TableProduct,
+    'band': TableBand
+}
