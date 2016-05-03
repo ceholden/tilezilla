@@ -16,5 +16,9 @@ class ProductNotFoundException(Exception):
     pass
 
 
+class UnknownProductException(Exception):
+    pass
+
+
 class ConsistencyError(Exception):
     pass
