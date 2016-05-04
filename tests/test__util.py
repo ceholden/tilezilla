@@ -54,6 +54,11 @@ def test_decompress_to(ESPA_order, ESPA_archive):
     assert not os.path.exists(path)  # path should be deleted when context ends
 
 
+def test_decompress_to_notarchive(ESPA_order):
+    with _util.decompress_to(ESPA_order) as path:
+        assert path == ESPA_order
+
+
 # mkdir_p
 def test_mkdir_p_success(tmpdir):
     _util.mkdir_p(tmpdir.join('test').strpath)
