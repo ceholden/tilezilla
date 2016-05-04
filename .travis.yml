@@ -3,10 +3,7 @@ sudo: false
 cache: apt
 python:
   - "2.7"
-# Disable until conda-forge py3.5 fixes
-# https://github.com/conda-forge/gdal-feedstock/pull/37
-# https://github.com/conda-forge/staged-recipes/pull/370
-#  - "3.5"
+  - "3.5"
 install:
     # Install conda environment
     - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
