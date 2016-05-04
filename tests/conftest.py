@@ -3,21 +3,27 @@ import tarfile
 
 import pytest
 
+HERE = os.path.dirname(__file__)
+DATA = os.path.join(HERE, 'data')
+
+
+@pytest.fixture
+def rgb_image(request):
+    return os.path.join(DATA, 'red_nir_swir1.gtif')
+
 
 @pytest.fixture(scope='module')
 def ESPA_archive(request):
     """ ESPA download archive filename
     """
-    return os.path.join(os.path.dirname(__file__), 'data',
-                        'LT50120312002300-SC20151009172149.tar.gz')
+    return os.path.join(DATA, 'LT50120312002300-SC20151009172149.tar.gz')
 
 
 @pytest.fixture(scope='module')
 def ESPA_archive_EPSG5070(request):
     """ ESPA download archive filename, reprojected to EPSG:5070
     """
-    return os.path.join(os.path.dirname(__file__), 'data',
-                        'LT50120312002300-SC20151009172149_EPSG5070.tar.gz')
+    return os.path.join(DATA, 'LT50120312002300-SC20151009172149_EPSG5070.tar.gz')
 
 
 @pytest.fixture(scope='module')
