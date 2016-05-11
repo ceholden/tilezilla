@@ -54,3 +54,4 @@ products:
                 - '*surface reflectance*'
                 - '*brightness temperature*'
                 - '*cfmask_band*'
+        resampling: nearest

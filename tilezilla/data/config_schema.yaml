@@ -103,6 +103,22 @@ definitions:
                     type: array
                     items:
                         type: string
+        resampling:
+            # Reprojection algorithms: http://www.gdal.org/gdalwarp.html
+            oneOf: [
+                near,
+                bilinear,
+                cubic,
+                cubicspline,
+                lanczos,
+                average,
+                mode,
+                max,
+                min,
+                med,
+                q1,
+                q3
+            ]
     util:
         xy_float:
             type: array

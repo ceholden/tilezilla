@@ -37,10 +37,10 @@
 
 ## Products
 * [ ] ESPA
-    * [ ] Remove MTL file requirement
+    * [x] Remove MTL file requirement
     * [ ] Handle two types of HDF formats: HDF pointing to .img files & HDF containing data internally
 
 ## Config:
 * [x] Allow `tilez ingest --help` to work without providing a config file
 * [x] Pass config via arg rather than context
-* [ ] Reprojection options
+* [x] Reprojection options

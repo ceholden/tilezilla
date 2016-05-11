@@ -182,6 +182,6 @@ def reproject_as_needed(src, tilespec, resampling='nearest'):
             warp.reproject(
                 rasterio.band(src, 1),
                 rasterio.band(dst, 1),
-                resampling=getattr(warp.RESAMPLING, resampling)
+                resampling=getattr(warp.Resampling, resampling)
             )
             yield dst

@@ -49,6 +49,9 @@ def ingest_source(config, source, overwrite, log_name):
             desired_bands = include_bands(product.bands, band_filter,
                                           regex=band_filter_regex)
 
+        # Reprojection option
+        resampling = product_config.get('resampling', 'nearest')
+
         # Retrieve bounding box in tilespec's CRS
         bbox = reproject_bounds(product.bounds, 'EPSG:4326', spec.crs)
 
@@ -68,7 +71,7 @@ def ingest_source(config, source, overwrite, log_name):
         indexed_products, indexed_bands = {}, defaultdict(list)
         for band in desired_bands:
             echoer.info('Reprojecting band: {}'.format(band))
-            with reproject_as_needed(band.src, spec) as src:
+            with reproject_as_needed(band.src, spec, resampling) as src:
                 band.src = src
                 echoer.process('Tiling: {}'.format(band.long_name))
                 for tile, tile_id in zip(tiles, tiles_id):
