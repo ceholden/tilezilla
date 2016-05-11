@@ -40,12 +40,12 @@ def test_lazy_property_2(test_object):
 
 
 # decompress_to
-def test_decompress_to(ESPA_order, ESPA_archive):
+def test_decompress_to(ESPA_GTiff_order, ESPA_GTiff_archive):
     espa_files = []
-    for root, dirs, files in os.walk(ESPA_order):
+    for root, dirs, files in os.walk(ESPA_GTiff_order):
         espa_files.extend(files)
 
-    with _util.decompress_to(ESPA_archive) as path:
+    with _util.decompress_to(ESPA_GTiff_archive) as path:
         tgz_files = []
         for root, dirs, files in os.walk(path):
             tgz_files.extend(files)
@@ -54,9 +54,9 @@ def test_decompress_to(ESPA_order, ESPA_archive):
     assert not os.path.exists(path)  # path should be deleted when context ends
 
 
-def test_decompress_to_notarchive(ESPA_order):
-    with _util.decompress_to(ESPA_order) as path:
-        assert path == ESPA_order
+def test_decompress_to_notarchive(ESPA_GTiff_order):
+    with _util.decompress_to(ESPA_GTiff_order) as path:
+        assert path == ESPA_GTiff_order
 
 
 # mkdir_p
