@@ -1,11 +1,8 @@
 """ Handler for Landsat data processed and distributed through ESPA
 """
-import pathlib
-
 from .._util import find_in_path
 from ..sensors.landsat import MTL, ESPAMetadata
 from .core import BaseProduct
-from ..core import BoundingBox
 
 
 class ESPALandsat(BaseProduct):
@@ -15,26 +12,6 @@ class ESPALandsat(BaseProduct):
     mtl_pattern = 'L*_MTL.txt'
 
     description = 'ESPALandsat'
-
-    path, timeseries_id, platform, instrument = '', '', '', ''
-    acquired, processed = None, None
-    bounds = BoundingBox(0, 0, 0, 0)
-    bands = []
-    metadata, metadata_files = {}, {}
-
-    def __init__(self, timeseries_id,
-                 acquired, processed, platform, instrument, bounds,
-                 bands=None, metadata=None, metadata_files=None):
-        self.timeseries_id = timeseries_id
-        self.acquired = acquired
-        self.processed = processed
-        self.platform = platform
-        self.instrument = instrument
-        self.bounds = bounds
-
-        self.bands = bands or []
-        self.metadata = metadata or {}
-        self.metadata_files = metadata_files or {}
 
     @classmethod
     def from_path(cls, path):
