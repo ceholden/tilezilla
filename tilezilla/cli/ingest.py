@@ -38,8 +38,18 @@ def ingest_source(config, source, overwrite, log_name):
         collection_name = product.description
 
         # Subset bands
-        desired_bands = _include_bands_from_config(config, product.bands)
+        product_config = config.get('products', {}).get(collection_name, {})
+        if not product_config:
+            echoer.warning('No inclusion filter specified for product. '
+                           'Ingesting all bands in product.')
+            desired_bands = product.bands
+        else:
+            band_filter = product_config.copy().get('include_filter', {})
+            band_filter_regex = band_filter.pop('regex', False)
+            desired_bands = include_bands(product.bands, band_filter,
+                                          regex=band_filter_regex)
 
+        # Retrieve bounding box in tilespec's CRS
         bbox = reproject_bounds(product.bounds, 'EPSG:4326', spec.crs)
 
         # Find tiles for product & IDs of these tiles in database
@@ -121,24 +131,6 @@ def ingest_source(config, source, overwrite, log_name):
     # Make sure to close database connection
     database.session.close()
     return indexed_products, indexed_bands
-
-
-def _include_bands_from_config(config, bands):
-    """ Return a list of :class:`Band`s specified in tilezilla configuration
-
-    Args:
-        config (dict): `tilezilla` configuration
-        bands (list[Band]): List of bands to filter
-
-    Returns:
-        list[Bands]: Included bands
-    """
-    # TODO: move elsewhere
-    product_filter = (config.get('products', {}).copy()
-                      .get('include_filter', {}))
-    include_regex = product_filter.pop('regex', False)
-
-    return include_bands(bands, product_filter, regex=include_regex)
 
 
 @click.command(short_help='Ingest known products into tile dataset format')

@@ -16,10 +16,11 @@ properties:
     store:
         "$ref": "#/definitions/stores"
     products:
-        type: object
-        properties:
-            include_filter:
-                "$ref": "#/definitions/products/include_filter"
+        collection_name:
+            type: object
+            properties:
+                include_filter:
+                    "$ref": "#/definitions/products/include_filter"
 
 
 definitions:

@@ -45,11 +45,12 @@ tilespec: WELD_CONUS
 
 # Products
 products:
-    ## Product handling options
-    include_filter:
-        regex: false
-        # Attributes of each product band to include
-        long_name:
-            - '*surface reflectance*'
-            - '*brightness temperature*'
-            - '*cfmask_band*'
+    ## Product handling options, specified by product type
+    ESPALandsat:
+        include_filter:
+            regex: false
+            # Attributes of each product band to include
+            long_name:
+                - '*surface reflectance*'
+                - '*brightness temperature*'
+                - '*cfmask_band*'
