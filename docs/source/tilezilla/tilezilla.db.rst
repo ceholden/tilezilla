@@ -1,13 +1,6 @@
 tilezilla.db package
 ====================
 
-Subpackages
------------
-
-.. toctree::
-
-    tilezilla.db.sqlite
-
 Module contents
 ---------------
 

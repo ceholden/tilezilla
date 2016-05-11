@@ -4,12 +4,18 @@
 Tilezilla Database Command Line Interface
 =========================================
 
-Datasets ingested through Tilezilla are indexed in a database (see :ref:`guide_configuration_database`). The ``tilez db`` command and subcommands allows the user to easily query this database without requiring knowledge of SQL.
+Datasets ingested through Tilezilla are indexed in a database
+(see :ref:`guide_configuration_database`). The ``tilez db`` command and
+subcommands allows the user to easily query this database without requiring
+knowledge of SQL.
 
 Examples
 --------
 
-All of these examples assume the Tilezilla configuration file has been specified by defining an `environment variable <https://en.wikipedia.org/wiki/Environment_variable>`_, ``TILEZILLA_CONFIG``:
+All of these examples assume the Tilezilla configuration file has been
+specified by defining an
+`environment variable <https://en.wikipedia.org/wiki/Environment_variable>`_,
+``TILEZILLA_CONFIG``:
 
 .. code-block:: bash
 
@@ -43,7 +49,9 @@ All of these examples assume the Tilezilla configuration file has been specified
 2. Find products that weren't fully ingested
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sometimes a product ingest can fail. In order to help recover, we can query the database to find all bands from products that were partially ingested. In this example, we know that all products should contain 8 bands.
+Sometimes a product ingest can fail. In order to help recover, we can query
+the database to find all bands from products that were partially ingested. In
+this example, we know that all products should contain 8 bands.
 
 .. code-block:: bash
 
