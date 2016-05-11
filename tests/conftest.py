@@ -3,6 +3,13 @@ import tarfile
 
 import pytest
 
+# Workaround for no os.path.commonpath in py27 or py3 < 3.5
+def commonpath(l):
+    prefix = os.path.commonprefix(l)
+    prefix = prefix if os.path.sep in prefix else prefix + os.path.sep
+    return os.path.split(prefix)[0]
+
+
 HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, 'data')
 
@@ -34,7 +41,7 @@ def ESPA_GTiff_order(ESPA_GTiff_archive,
     path = str(tmpdir_factory.mktemp('ESPA_order'))
     with tarfile.open(ESPA_GTiff_archive) as tgz:
         tgz.extractall(path)
-        path = os.path.join(path, os.path.commonpath(tgz.getnames()))
+        path = os.path.join(path, commonpath(tgz.getnames()))
     return path
 
 
@@ -53,5 +60,5 @@ def ESPA_GTiff_order_EPSG5070(ESPA_GTiff_archive_EPSG5070,
     path = str(tmpdir_factory.mktemp('ESPA_order_EPSG5070'))
     with tarfile.open(ESPA_GTiff_archive_EPSG5070) as tgz:
         tgz.extractall(path)
-        path = os.path.join(path, os.path.commonpath(tgz.getnames()))
+        path = os.path.join(path, commonpath(tgz.getnames()))
     return path
