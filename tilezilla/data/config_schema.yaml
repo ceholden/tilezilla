@@ -9,7 +9,7 @@ properties:
     database:
         "$ref": "#/definitions/database"
     tilespec:
-        anyOf: [
+        oneOf: [
             "$ref": "#/definitions/tiles/wellknown",
             "$ref": "#/definitions/tiles/specified"
         ]
