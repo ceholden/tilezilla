@@ -19,8 +19,8 @@ class BaseProduct(object):
 
     Args:
         timeseries_id (str): Unique acquisition ID
-        acquired (datetime): Acquisition date and time
-        processed (datetime): Product processing date and time
+        acquired (Arrow): Acquisition date and time
+        processed (Arrow): Product processing date and time
         platform (str): Satellite / aircraft platform (e.g., AQUA)
         instrument (str): Remotely sensed instrument (e.g., MODIS)
         bounds (BoundingBox): A rough estimate of the bounding box for this
