@@ -1,6 +1,10 @@
 language: python
 sudo: false
 cache: apt
+branches:
+  only:
+    - master
+    - /^v[0-9].*$/
 python:
   - "2.7"
   - "3.5"
