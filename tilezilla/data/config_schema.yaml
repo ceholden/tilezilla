@@ -16,12 +16,21 @@ properties:
     store:
         "$ref": "#/definitions/stores"
     products:
-        collection_name:
-            type: object
-            properties:
-                include_filter:
-                    "$ref": "#/definitions/products/include_filter"
-
+        type: object
+        patternProperties:
+            # Allow collection name to be any string
+            '.*':
+                type: object
+                properties:
+                    include_filter:
+                        "$ref": "#/definitions/products/include_filter"
+                    resampling:
+                        "$ref": "#/definitions/products/resampling"
+required:
+    - version
+    - database
+    - tilespec
+    - store
 
 definitions:
     database:
@@ -105,8 +114,8 @@ definitions:
                         type: string
         resampling:
             # Reprojection algorithms: http://www.gdal.org/gdalwarp.html
-            oneOf: [
-                near,
+            enum: [
+                nearest,
                 bilinear,
                 cubic,
                 cubicspline,
