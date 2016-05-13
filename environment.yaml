@@ -22,7 +22,8 @@ dependencies:
     # plotting
     - matplotlib>=1.5.1
     # Required for "clover" -- see below
-    # - pillow (jpeg8 dependency conflicts with gdal/rasterio jpeg9)
+    - pillow
+    - pyproj
     - fiona
     # Required but missing from conda
     - pip:
