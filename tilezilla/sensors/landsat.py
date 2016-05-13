@@ -16,6 +16,9 @@ from ..core import Band, BoundingBox
 
 logger = logging.getLogger('tilezilla')
 
+#: str: HDF path formatting
+HDF_PATH = 'HDF4_EOS:EOS_GRID:"{hdf_root}":Grid:{variable}'
+
 #: dict[sensor=dict[friedly_name=band number]]
 SENSOR_BAND_FRIENDLY_NAMES = {
     'LM1': SENSOR_FRIENDLY_NAMES['MSS'],
@@ -226,7 +229,17 @@ class ESPAMetadata(object):
         # Units
         units = xml.find('data_units').text
         # Filename path
-        path = str(self.path.parent.joinpath(xml.find('file_name').text))
+        path = xml.find('file_name').text
+        if 'hdf' in path:
+            # If HDF, have to reconstruct path using HDF4_EOS format
+            root_hdf = path.split('_')[0] + '.hdf'
+            path = HDF_PATH.format(
+                hdf_root=self.path.parent.joinpath(root_hdf),
+                variable=standard_name
+            )
+        else:
+            path = str(self.path.parent.joinpath(path))
+
         # Numeric info
         data_type = np.dtype(xml.get('data_type').lower())
 
