@@ -35,6 +35,9 @@ def parse_config(path):
 
     jsonschema.validate(cfg, schema_defn)
 
+    # Expand environment variables
+    cfg = _expand_envvars(cfg)
+
     # Final parsing
     cfg = _parse_database(cfg)
     cfg = _parse_tilespec(cfg)
@@ -98,7 +101,7 @@ def _expand_envvars(d):
             _d[k] = _expand_envvars(v)
         elif isinstance(v, str):
             _d[k] = os.path.expandvars(v)
-            check_envvar(k, v)
+            check_envvar(k, _d[k])
         elif isinstance(v, (list, tuple)):
             n_v = []
             for _v in v:
