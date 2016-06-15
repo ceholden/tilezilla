@@ -17,7 +17,10 @@ import sys
 import os
 
 # Mocking ----------------------------------------------------------------------
-import mock
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 
 # NOTE: not mocking sqlalchemy/sqlalchemy_utils because a mocked table
 #       doesn't seem to allow reference to class attributes inside of
