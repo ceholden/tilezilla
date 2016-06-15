@@ -85,6 +85,8 @@ definitions:
                 type: string
             tile_dirpattern:
                 type: string
+            tile_imgpattern:
+                type: string
             co:
                 type: object
                 properties:

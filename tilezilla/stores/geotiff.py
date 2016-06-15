@@ -10,6 +10,8 @@ from .._util import mkdir_p
 from ..errors import FillValueException
 from ..geoutils import meta_to_bounds
 
+IMG_PATTERN = '{tile.timeseries_id}_{band.standard_name}.tif'
+
 
 class GeoTIFFStore(object):
     """ GeoTIFF tile store
@@ -60,12 +62,18 @@ class GeoTIFFStore(object):
             'height': tile.tilespec.size[1]
         })
 
-    def store_variable(self, product, band, overwrite=False):
+    def store_variable(self, product, band,
+                       img_pattern=IMG_PATTERN,
+                       overwrite=False):
         """ Store product variable contained within this tile
 
         Args:
             product (BaseProduct): A product to store
             band (Band): A :class:`Band` containing an observed variable
+            img_pattern (str): A format string that is used for creating the
+                output filename for this variable using Attributes of the
+                `product` and `band`. GeoTIFF driver's default is:
+                ``{product.timeseries_id}_{band.standard_name}.tif``
             overwrite (bool): Allow overwriting
 
         Returns:
@@ -80,7 +88,7 @@ class GeoTIFFStore(object):
         if np.all(src_data == band.fill):
             raise FillValueException('Variable is 100% fill value')
 
-        dst_path = self._band_filename(product, band)
+        dst_path = self._band_filename(product, band, img_pattern)
         mkdir_p(os.path.dirname(dst_path))
 
         dst_meta = band.src.meta.copy()
@@ -127,8 +135,8 @@ class GeoTIFFStore(object):
         """
         return os.path.join(self.path, product.timeseries_id)
 
-    def _band_filename(self, product, band):
+    def _band_filename(self, product, band, img_pattern=IMG_PATTERN):
         """ Return path to a band in a product
         """
-        return os.path.join(self._product_filename(product),
-                            os.path.basename(band.path))
+        name = img_pattern.format(product=product, band=band)
+        return os.path.join(self._product_filename(product), name)

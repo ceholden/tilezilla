@@ -97,8 +97,10 @@ def ingest_source(config, source, overwrite, log_name):
 
                     # Save and record path
                     try:
-                        dst_path = store.store_variable(product, band,
-                                                        overwrite=overwrite)
+                        dst_path = store.store_variable(
+                            product, band,
+                            img_pattern=config['store']['tile_imgpattern'],
+                            overwrite=overwrite)
                     except FillValueException:
                         # TODO: skip tile but complain
                         continue

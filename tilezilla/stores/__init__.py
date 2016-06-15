@@ -20,7 +20,7 @@ __all__ = [
 def destination_path(config, tile, product, root_override=None):
     """ Return path to tile data directory
 
-    Tile data dairectory is constructed as follows:
+    Tile data directory is constructed as follows:
 
     [root]/[collection name]/[tile name]
 

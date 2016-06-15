@@ -20,6 +20,7 @@ store:
     name: GeoTIFF  # could be NetCDF
     root: /home/ceholden/tiles
     tile_dirpattern: 'h{horizontal:04d}v{vertical:04d}'
+    tile_imgpattern: '{product.timeseries_id}_asdf_{band.standard_name}.tif'
     ## Additional option -- specific (?) to GeoTIFF: creation options
     co:
         tiled: true
