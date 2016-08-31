@@ -13,26 +13,38 @@ Ingest remote sensing products (e.g., Landsat Climate Data Record (CDR) by USGS)
 path and row or UTM zone boundaries. Input images can be reprojected into a suitable projection and grid to mimic pre-existing products (e.g., `National Land Cover Database
 (NLCD) <http://www.mrlc.gov/index.php>`__) or users can define their own projection and grid. Timeseries assembled from such tiles can easily incorporate observations from multiple viewing geometries by taking advantage of "sidelap" areas in adjacent WRS-2 paths.
 
-Demo (OUTDATED)
+Demo
 ---------------
 
 As a demonstration of this project's output, I tiled a layer stacked Landsat 5 image over Boston:
 
 .. code:: bash
 
-    $ tilezilla tile --grid nlcd1992 --mask --threads 4 --co "COMPRESS=LZW" LT50120312000183AAA02/LT50120312000183AAA02_stack.tif tiles/
-    *   Calculating intersecting tiles
-    *   Image intersects with 12 tiles
-    ==> Creating image tiles
-    ==> Tiling (-73.0, 41.0) to /home/ceholden/Documents/tilezilla/tiles/041N_073W/LT50120312000183AAA02/LT50120312000183AAA02_stack.tif
-    -   Masking to exactly tile extent
-    -   Reading in input image
-    -   Reprojecting all bands in image
+    $ tilez -C sandbox/demo_ingest.yaml ingest -pe process -j 4 tests/data/L*tar.gz
+    11:44:39:INFO:*   Ingesting 5 products
+    11:44:39:ceholden-ldesk:4762:INFO:*   Decompressing: LT40130301987146-SC20151019150137.tar.gz
+    11:44:39:ceholden-ldesk:4760:INFO:*   Decompressing: LE70130301999195-SC20151019134154.tar.gz
+    11:44:39:ceholden-ldesk:4763:INFO:*   Decompressing: LT50120312002300-SC20151009172149.tar.gz
+    11:44:39:ceholden-ldesk:4761:INFO:*   Decompressing: LE70130312015175-SC20151019173810.tar.gz
+    11:44:39:ceholden-ldesk:4761:INFO:*   Reprojecting band: <tilezilla.core.Band object at 0x7f7dbaabbc18>
+    11:44:39:ceholden-ldesk:4763:INFO:*   Reprojecting band: <tilezilla.core.Band object at 0x7f7dbaa55400>
+    11:44:39:ceholden-ldesk:4760:INFO:*   Reprojecting band: <tilezilla.core.Band object at 0x7f7dbaabbcf8>
+    11:44:39:ceholden-ldesk:4762:INFO:*   Reprojecting band: <tilezilla.core.Band object at 0x7f7dbaab9b00>
+    11:44:39:ceholden-ldesk:4760:INFO:==> Tiling: band 1 surface reflectance
+    11:44:39:ceholden-ldesk:4763:INFO:==> Tiling: band 1 surface reflectance
+    11:44:39:ceholden-ldesk:4761:INFO:==> Tiling: band 1 surface reflectance
+    11:44:39:ceholden-ldesk:4762:INFO:==> Tiling: band 1 surface reflectance
+    11:44:40:ceholden-ldesk:4760:INFO:-       Tiled band for tile h0029v0005
+    11:44:40:ceholden-ldesk:4763:INFO:-       Tiled band for tile h0029v0006
+    11:44:40:ceholden-ldesk:4760:INFO:*   Reprojecting band: <tilezilla.core.Band object at 0x7f7dbaabbe10>
+    11:44:40:ceholden-ldesk:4762:INFO:-       Tiled band for tile h0029v0005
+    11:44:40:ceholden-ldesk:4761:INFO:-       Tiled band for tile h0029v0006
     ...
-    ==> Tiling (-70.0, 43.0) to /home/ceholden/Documents/tilezilla/tiles/043N_070W/LT50120312000183AAA02/LT50120312000183AAA02_stack.tif
-    -   Masking to exactly tile extent
-    -   Reading in input image
-    -   Reprojecting all bands in image
+    11:44:52:ceholden-ldesk:4760:INFO:*   Reprojecting band: <tilezilla.core.Band object at 0x7f7dba9d29e8>
+    11:44:52:ceholden-ldesk:4760:INFO:==> Tiling: cfmask_band
+    11:44:52:ceholden-ldesk:4760:INFO:-       Tiled band for tile h0029v0005
+    11:44:52:INFO:-       Ingested: /home/ceholden/Documents/tilezilla/tests/data/LT50130301994205-SC20151019145346.tar.gz (product IDs: [6])
+    11:44:52:INFO:==> Indexed 5 products to 6 tiles of 48 bands
 
 I opened the original image, the image tiles, and vector files that show the outline of the tiles created in QGIS as a demonstration:
 
@@ -40,30 +52,6 @@ I opened the original image, the image tiles, and vector files that show the out
    :alt: Demo
 
    Demo
-
-Usage
------
-
-``tilezilla`` contains several sub-commands that either help coordinate the tiling process (``batch``, ``prepare``, ``unzip``, and more) or actually perform the image tiling (``tile``). Currently, only the ``tile`` sub-command is implemented.
-
-The full usage is:
-
-.. code:: bash
-
-    $ Usage: tilezilla [OPTIONS] COMMAND [ARGS]...
-
-      Landsat tile preprocessing command line interface (CLI)
-
-    Options:
-      --version      Show the version and exit.
-      -v, --verbose  Be verbose
-      -q, --quiet    Be quiet
-      -h, --help     Show this message and exit.
-
-    Commands:
-      ingest  Ingest known products into tile dataset format
-      shapes  Get shapes of tiled datasets
-      spew    Export tile dataset to other dataset format
 
 Installation
 ------------
