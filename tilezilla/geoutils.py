@@ -10,7 +10,7 @@ from osgeo import osr
 import rasterio
 import shapely
 import shapely.geometry
-from rasterio import crs, warp
+from rasterio import warp
 
 from .core import BoundingBox
 
@@ -122,25 +122,10 @@ def reproject_bounds(bounds, src_crs, dst_crs):
         BoundingBox: Bounding box in `dst_crs`
 
     """
-    if not crs.is_same_crs(src_crs, dst_crs):
+    if src_crs != dst_crs:
         return BoundingBox(*warp.transform_bounds(src_crs, dst_crs, *bounds))
     else:
         return bounds
-
-
-def crs_to_wkt(src_crs):
-    """ Return WKT representation of a rasterio dataset's CRS
-
-    Args:
-        src_crs (`dict`): Rasterio dataset CRS
-
-    Returns:
-        str: WKT of CRS
-    """
-    sr = osr.SpatialReference()
-    sr.ImportFromProj4(crs.to_string(src_crs))
-
-    return sr.ExportToWkt()
 
 
 @contextmanager
@@ -159,7 +144,7 @@ def reproject_as_needed(src, tilespec, resampling='nearest'):
     Returns:
         rasterio._io.RasterReader: original or reprojected dataset
     """
-    if crs.is_same_crs(src.crs, tilespec.crs):
+    if src.crs == tilespec.crs:
         yield src
     else:
         # Calculate new affine & size

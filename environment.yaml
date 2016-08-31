@@ -7,7 +7,7 @@ dependencies:
     # base
     - numpy>=1.10.0
     # geographic data packages
-    - rasterio>=0.31.0
+    - rasterio>=0.36.0
     - gdal
     - shapely>=1.5.13
     - netcdf4

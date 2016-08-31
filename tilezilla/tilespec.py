@@ -7,7 +7,7 @@ import pkgutil
 
 import affine
 import rasterio
-import rasterio.crs
+from rasterio.crs import CRS
 import shapely.geometry
 import six
 
@@ -29,19 +29,19 @@ class TileSpec(object):
     def __init__(self, ul, crs, res, size, desc=None):
         self.ul = ul
         if isinstance(crs, six.string_types):
-            self.crs = rasterio.crs.from_string(crs)
+            self.crs = CRS.from_string(crs)
         elif isinstance(crs, int):
-            self.crs = rasterio.crs.from_epsg(crs)
+            self.crs = CRS.from_epsg(crs)
         else:
             self.crs = crs
-        if not rasterio.crs.is_valid_crs(self.crs):
-            raise ValueError('Input CRS is not valid')
-        self.crs_str = rasterio.crs.to_string(self.crs)
-        self.res = res
-        self.size = size
-        if not rasterio.crs.is_valid_crs(self.crs):
+
+        if not self.crs.is_valid:
             raise ValueError('Could not parse coordinate reference system '
                              'string to a valid projection ({})'.format(crs))
+
+        self.crs_str = self.crs.to_string()
+        self.res = res
+        self.size = size
         self.desc = desc or 'unnamed'
         self._tiles = {}
 
@@ -236,7 +236,7 @@ def retrieve_tilespecs():
     tilespecs = json.loads(pkgutil.get_data('tilezilla',
                                             'data/tile_specs.json').decode())
     for key in tilespecs:
-        tilespecs[key]['crs'] = rasterio.crs.from_string(tilespecs[key]['crs'])
+        tilespecs[key]['crs'] = CRS.from_string(tilespecs[key]['crs'])
         tilespecs[key] = TileSpec(desc=key, **tilespecs[key])
     return tilespecs
 

@@ -13,8 +13,6 @@ from xml.dom import minidom
 
 from rasterio import dtypes
 
-from ..geoutils import crs_to_wkt
-
 COLOR_INTERP = defaultdict(str)
 COLOR_INTERP[2] = 'Red'
 COLOR_INTERP[1] = 'Green'
@@ -58,7 +56,7 @@ class VRT(object):
 
     def _add_crs(self, ds):
         crs = SubElement(self.root, 'SRS')
-        crs.text = crs_to_wkt(ds.crs)
+        crs.text = ds.crs.wkt
 
         return crs
 
