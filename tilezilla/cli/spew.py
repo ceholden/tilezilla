@@ -50,20 +50,26 @@ def spew(ctx, destination, product_ids, bands, regex):
         cliutils.config_to_resources(config))
     mkdir_p(destination)
 
-    if bands:
-        include_filter = defaultdict(list)
-        for attr, pattern in six.iteritems(bands):
-            include_filter[attr].append(pattern)
-    else:
-        include_filter = config['products']['include_filter'].copy()
-        regex = include_filter.pop('regex')
-
     n_bands = None
     for prod_id in product_ids:
         product = dataset.get_product(prod_id)
         if not product:
             raise ProductNotFoundException('No product in index with ID={}'
                                            .format(prod_id))
+
+        if bands:
+            include_filter = defaultdict(list)
+            for attr, pattern in six.iteritems(bands):
+                include_filter[attr].append(pattern)
+        else:
+            prod_cfg = config['products'].get(product.description, None)
+            if not prod_cfg:
+                raise KeyError('``include_filter`` bands not declared in '
+                               'configuration file for product "{}"'
+                               .format(product.description))
+            include_filter = prod_cfg['include_filter'].copy()
+            regex = include_filter.pop('regex')
+
         tile = cube.get_tile(database.get_product(prod_id).tile.id)
 
         echoer.item('Exporting product:\n{0}'
