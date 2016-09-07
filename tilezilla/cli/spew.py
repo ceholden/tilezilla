@@ -72,10 +72,11 @@ def spew(ctx, destination, product_ids, bands, regex):
 
         tile = cube.get_tile(database.get_product(prod_id).tile.id)
 
-        echoer.item('Exporting product:\n{0}'
-                    .format(str(product).replace('\n', '\n    ')))
-
         desired_bands = include_bands(product.bands, include_filter, regex)
+
+        band_names = ', '.join([b.friendly_name for b in desired_bands])
+        echoer.item('Exporting product: {0}'.format(product.timeseries_id))
+        echoer.item('    Friendly band names: {0}'.format(band_names))
 
         n_bands = n_bands or len(desired_bands)
         if len(desired_bands) != n_bands:
