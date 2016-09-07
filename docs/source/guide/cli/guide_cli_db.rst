@@ -1,8 +1,7 @@
-.. _guide_db:
+.. _guide_cli_db:
 
-=========================================
-Tilezilla Database Command Line Interface
-=========================================
+Database Queries
+================
 
 Datasets ingested through Tilezilla are indexed in a database
 (see :ref:`guide_configuration_database`). The ``tilez db`` command and
@@ -27,7 +26,7 @@ specified by defining an
 
 .. code-block:: bash
 
-    $ tilez db info product
+    > tilez db info product
     11:30:36:INFO:*   Information about: <class 'tilezilla.db.sqlite.tables.TableProduct'>
     11:30:36:INFO:==> Number of entries: 6
     11:30:36:INFO:==> Enumerating columns in table: <class 'tilezilla.db.sqlite.tables.TableProduct'>
@@ -55,7 +54,7 @@ this example, we know that all products should contain 8 bands.
 
 .. code-block:: bash
 
-    $ tilez db search --filter "n_bands != 8" --group_by timeseries_id product
+    > tilez db search --filter "n_bands != 8" --group_by timeseries_id product
     Searching table "product" where:
     n_bands != 8
     Results:
