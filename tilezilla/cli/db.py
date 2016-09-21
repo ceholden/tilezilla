@@ -11,9 +11,8 @@ from . import cliutils, options
 def _db_from_ctx(ctx):
     try:
         db = ctx.obj['db']
-    except Exception as e:
-        raise click.BadParameter('Must specify config file: {}'.format(e),
-                                 param=options.opt_config_file)
+    except KeyError as exc:
+        raise click.UsageError('Must specify config file, --config', ctx)
     return db
 
 
