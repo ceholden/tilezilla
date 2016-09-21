@@ -25,6 +25,8 @@ Usage
       -h, --help                      Show this message and exit.
 
 
+.. include:: ../config_note.rst
+
 
 Examples
 --------

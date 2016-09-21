@@ -39,6 +39,8 @@ bundle multiple bands together.
 Example
 -------
 
+.. include:: ../config_note.rst
+
 To begin, the ``spew`` command needs to know what products in the database to
 convert to the VRT format.
 

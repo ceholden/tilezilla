@@ -17,6 +17,7 @@ Submodules
 
 .. toctree::
 
+   tilezilla.api
    tilezilla.config
    tilezilla.core
    tilezilla.errors

@@ -8,18 +8,11 @@ Datasets ingested through Tilezilla are indexed in a database
 subcommands allows the user to easily query this database without requiring
 knowledge of SQL.
 
+
 Examples
 --------
 
-All of these examples assume the Tilezilla configuration file has been
-specified by defining an
-`environment variable <https://en.wikipedia.org/wiki/Environment_variable>`_,
-``TILEZILLA_CONFIG``:
-
-.. code-block:: bash
-
-    export TILEZILLA_CONFIG=/path/to/configuration_file.yaml
-
+.. include:: ../config_note.rst
 
 1. Find information about the `products` table
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

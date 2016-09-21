@@ -4,6 +4,8 @@
 Command Line Interface (CLI)
 ============================
 
+.. include:: config_note.rst
+
 .. toctree::
     :maxdepth: 1
 
