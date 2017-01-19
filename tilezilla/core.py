@@ -57,7 +57,7 @@ class Band(object):
     def src(self):
         """ rasterio._io.RasterReader: the Band dataset opened with rasterio
         """
-        with rasterio.drivers():
+        with rasterio.Env():  # TODO: insert Env options
             src = rasterio.open(self.path)
 
         return src
