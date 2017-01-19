@@ -184,7 +184,7 @@ class Tile(object):
         return self.index[1]
 
     @property
-    def affine(self):
+    def transform(self):
         """ affine.Affine: The ``Affine`` transform for the tile
         """
         return affine.Affine(self.tilespec.res[0], 0, self.bounds.left,

@@ -56,8 +56,7 @@ class GeoTIFFStore(object):
         self.meta_options.update(meta_options or {})
 
         self.meta_options.update({
-            'affine': tile.affine,
-            'transform': tile.affine,
+            'transform': tile.transform,
             'width': tile.tilespec.size[0],
             'height': tile.tilespec.size[1]
         })

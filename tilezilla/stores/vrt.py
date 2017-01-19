@@ -62,7 +62,7 @@ class VRT(object):
 
     def _add_geotransform(self, ds):
         gt = SubElement(self.root, 'GeoTransform')
-        gt.text = ', '.join(map(str, ds.affine.to_gdal()))
+        gt.text = ', '.join(map(str, ds.transform.to_gdal()))
 
         return gt
 

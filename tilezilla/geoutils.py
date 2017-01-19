@@ -93,18 +93,18 @@ def bounds_to_polygon(bounds):
     ])
 
 
-def meta_to_bounds(affine, width, height, **kwargs):
+def meta_to_bounds(transform, width, height, **kwargs):
     """ Convert ``rasterio`` \**dataset.meta to a BoundingBox
 
     Args:
-        affine (affine.Affine): Affine transformation
+        transform (affine.Affine): Affine transformation
         width (int): Number of columns
         height (int): Number of rows
 
     Returns:
         BoundingBox: The box bounding the extent of the raster
     """
-    a, b, c, d, e, f, _, _, _ = affine
+    a, b, c, d, e, f, _, _, _ = transform
     return BoundingBox(c, f + e * height, c + a * width, f)
 
 
@@ -147,21 +147,20 @@ def reproject_as_needed(src, tilespec, resampling='nearest'):
     if src.crs == tilespec.crs:
         yield src
     else:
-        # Calculate new affine & size
-        affine, width, height = warp.calculate_default_transform(
+        # Calculate new transform & size
+        transform, width, height = warp.calculate_default_transform(
             src.crs, tilespec.crs,
             src.width, src.height,
             *src.bounds, resolution=tilespec.res)
         # Snap bounds
-        affine = snap_transform(affine, tilespec.ul)
+        transform = snap_transform(transform, tilespec.ul)
 
         dst_meta = src.meta.copy()
         dst_meta['driver'] = 'MEM'
         dst_meta['crs'] = tilespec.crs
         dst_meta['width'] = width
         dst_meta['height'] = height
-        dst_meta['affine'] = affine
-        dst_meta['transform'] = affine
+        dst_meta['transform'] = transform
 
         with rasterio.open(os.path.basename(src.name), 'w', **dst_meta) as dst:
             warp.reproject(
