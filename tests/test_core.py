@@ -22,7 +22,7 @@ def test_band(rgb_image, band_idx):
             assert getattr(band.src, prop) == value
 
         filter_ = (lambda x: not callable(x) and
-                             not isinstance(x, rasterio._io.RasterReader))
+                             not isinstance(x, rasterio.io.DatasetBase))
         props = [(p, v) for p, v in
                  inspect.getmembers(rasterio.band(src, band_idx), filter_)
                  if not p.startswith('_')]
